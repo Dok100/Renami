@@ -18,9 +18,9 @@ struct ContentView: View {
     }
 
     private var topBar: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(AppInfo.title)
                         .font(.system(size: 30, weight: .bold))
                     Text(AppInfo.subtitle)
@@ -43,12 +43,13 @@ struct ContentView: View {
                 }
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 WorkflowStepChip(
                     index: 1,
                     title: "Quellen wählen",
                     subtitle: viewModel.selectionSummary,
                     tint: .secondary,
+                    isActive: viewModel.activeStep == 1,
                     isEmphasized: !viewModel.files.isEmpty
                 )
 
@@ -57,6 +58,7 @@ struct ContentView: View {
                     title: "Regeln festlegen",
                     subtitle: viewModel.rulesSummary,
                     tint: .accentColor,
+                    isActive: viewModel.activeStep == 2,
                     isEmphasized: viewModel.activeRuleCount > 0
                 )
 
@@ -65,12 +67,13 @@ struct ContentView: View {
                     title: "Vorschau prüfen",
                     subtitle: viewModel.previewSummary,
                     tint: viewModel.errorCount > 0 ? .red : .green,
+                    isActive: viewModel.activeStep == 3,
                     isEmphasized: viewModel.hasPreviewContent
                 )
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 18)
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
         .padding(.bottom, 16)
         .background(Color(nsColor: .windowBackgroundColor))
     }
@@ -81,36 +84,47 @@ private struct WorkflowStepChip: View {
     let title: String
     let subtitle: String
     let tint: Color
+    let isActive: Bool
     let isEmphasized: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(isEmphasized ? tint.opacity(0.14) : Color.secondary.opacity(0.12))
+                    .fill(isActive ? tint.opacity(0.18) : isEmphasized ? tint.opacity(0.14) : Color.secondary.opacity(0.12))
                     .frame(width: 30, height: 30)
 
                 Text("\(index)")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(isEmphasized ? tint : .secondary)
+                    .foregroundStyle(isActive || isEmphasized ? tint : .secondary)
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.subheadline.weight(isActive ? .bold : .semibold))
+                    .foregroundStyle(isActive ? .primary : .secondary)
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(isActive ? Color.primary.opacity(0.78) : Color.secondary)
                     .lineLimit(2)
             }
 
             Spacer(minLength: 0)
         }
-        .padding(12)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor))
+                .fill(isActive ? tint.opacity(0.05) : Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(alignment: .bottomLeading) {
+            Rectangle()
+                .fill(isActive ? tint.opacity(0.9) : Color.clear)
+                .frame(height: 2)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(isActive ? tint.opacity(0.16) : Color.secondary.opacity(0.06), lineWidth: 1)
         )
     }
 }

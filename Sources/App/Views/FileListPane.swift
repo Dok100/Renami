@@ -7,14 +7,20 @@ struct FileListPane: View {
         VStack(alignment: .leading, spacing: 16) {
             header
             sourceSummary
+            if !viewModel.files.isEmpty {
+                filterBar
+            }
             DropZoneView(isEmpty: viewModel.files.isEmpty)
                 .onDrop(of: viewModel.allowedDropTypes, isTargeted: nil, perform: viewModel.handleDropped)
 
             if viewModel.files.isEmpty {
                 emptyHelper
                 Spacer()
+            } else if viewModel.displayedSourcePreviews.isEmpty {
+                filteredEmptyState
+                Spacer()
             } else {
-                List(viewModel.previews) { preview in
+                List(viewModel.displayedSourcePreviews) { preview in
                     FileRow(
                         preview: preview,
                         isSelected: selectionBinding(for: preview.id)
@@ -31,22 +37,29 @@ struct FileListPane: View {
 
             footer
         }
-        .padding(18)
+        .padding(16)
         .frame(minWidth: 300, idealWidth: 340, maxWidth: 380, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(nsColor: .windowBackgroundColor))
+        .overlay(alignment: .top) {
+            if viewModel.activeStep == 1 {
+                Rectangle()
+                    .foregroundStyle(Color.accentColor.opacity(0.35))
+                    .frame(height: 2)
+            }
+        }
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text("1")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                     .background(Capsule().fill(Color.secondary.opacity(0.12)))
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Quellen")
                         .font(.title3.weight(.semibold))
                     Text("Dateien oder Ordner hinzufügen und Auswahl eingrenzen.")
@@ -76,7 +89,7 @@ struct FileListPane: View {
     }
 
     private var sourceSummary: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             SourceMetric(title: "Quellen", value: "\(viewModel.files.count)", systemImage: "doc.on.doc")
             SourceMetric(title: "Auswahl", value: "\(viewModel.selectedCount)", systemImage: "checkmark.circle")
         }
@@ -90,12 +103,43 @@ struct FileListPane: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(nsColor: .controlBackgroundColor))
         )
+    }
+
+    private var filteredEmptyState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Keine Einträge für diesen Filter", systemImage: "line.3.horizontal.decrease.circle")
+                .font(.subheadline.weight(.semibold))
+            Text("Wechsle auf „Alle“ oder passe Regeln und Auswahl an, um wieder Dateien in der Quellenliste zu sehen.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
+    }
+
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Ansicht")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Picker("Quellenfilter", selection: sourceListModeBinding) {
+                ForEach(AppViewModel.SourceListMode.allCases, id: \.self) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
     }
 
     private var footer: some View {
@@ -119,6 +163,17 @@ struct FileListPane: View {
             set: { _ in
                 DispatchQueue.main.async {
                     viewModel.toggleSelection(for: fileID)
+                }
+            }
+        )
+    }
+
+    private var sourceListModeBinding: Binding<AppViewModel.SourceListMode> {
+        Binding(
+            get: { viewModel.sourceListMode },
+            set: { mode in
+                DispatchQueue.main.async {
+                    viewModel.selectSourceListMode(mode)
                 }
             }
         )

@@ -21,12 +21,31 @@ final class AppViewModel: ObservableObject {
         }
     }
 
+    enum SourceListMode: String, CaseIterable {
+        case all
+        case changedOnly
+        case conflictsOnly
+
+        var title: String {
+            switch self {
+            case .all:
+                "Alle"
+            case .changedOnly:
+                "Geändert"
+            case .conflictsOnly:
+                "Konflikte"
+            }
+        }
+    }
+
     @Published var files: [FileItem] = []
     @Published var rules: [RenameRule] = RenameRule.defaults()
     @Published var presets: [PresetStore.Preset] = PresetStore.load()
     @Published var selectedPresetID: PresetStore.Preset.ID?
     @Published var previewListMode: PreviewListMode = .all
+    @Published var sourceListMode: SourceListMode = .all
     @Published private var renameFeedbackMessage: String?
+    @Published private(set) var lastUndoSession: UndoRenameSession?
 
     private var currentPreviews: [PreviewItem] {
         PreviewEngine.buildPreviews(items: files, rules: rules)
@@ -38,6 +57,19 @@ final class AppViewModel: ObservableObject {
 
     var previews: [PreviewItem] {
         currentPreviews
+    }
+
+    var displayedSourcePreviews: [PreviewItem] {
+        currentPreviews.filter { preview in
+            switch sourceListMode {
+            case .all:
+                true
+            case .changedOnly:
+                preview.isChanged
+            case .conflictsOnly:
+                preview.hasErrors
+            }
+        }
     }
 
     var displayedPreviews: [PreviewItem] {
@@ -136,7 +168,24 @@ final class AppViewModel: ObservableObject {
     }
 
     var renameButtonTitle: String {
-        renameCandidateCount > 0 ? "\(renameCandidateCount) Dateien umbenennen" : "Umbenennen"
+        switch renameCandidateCount {
+        case 1:
+            "1 Datei umbenennen"
+        case let count where count > 1:
+            "\(count) Dateien umbenennen"
+        default:
+            "Umbenennen"
+        }
+    }
+
+    var undoButtonTitle: String {
+        guard let lastUndoSession else {
+            return "Letzte Umbenennung rückgängig"
+        }
+
+        return lastUndoSession.renamedCount == 1
+            ? "1 Umbenennung rückgängig"
+            : "\(lastUndoSession.renamedCount) Umbenennungen rückgängig"
     }
 
     var renameHelpText: String {
@@ -164,6 +213,14 @@ final class AppViewModel: ObservableObject {
             !currentPreviews.contains { $0.isSelected && $0.hasErrors }
     }
 
+    var canUndoLastRename: Bool {
+        guard let lastUndoSession else {
+            return false
+        }
+
+        return !lastUndoSession.operations.isEmpty
+    }
+
     var statusMessage: String {
         if let renameFeedbackMessage {
             return renameFeedbackMessage
@@ -186,6 +243,22 @@ final class AppViewModel: ObservableObject {
 
     var hasPreviewContent: Bool {
         !currentPreviews.isEmpty
+    }
+
+    var activeStep: Int {
+        if files.isEmpty {
+            return 1
+        }
+
+        if activeRuleCount == 0 {
+            return 2
+        }
+
+        if hasPreviewContent {
+            return 3
+        }
+
+        return 2
     }
 
     func importFiles() {
@@ -281,6 +354,23 @@ final class AppViewModel: ObservableObject {
 
             DispatchQueue.main.async {
                 self?.applyRenameResult(result, basedOn: currentPreviews)
+            }
+        }
+    }
+
+    func undoLastRename() {
+        renameFeedbackMessage = nil
+
+        guard let lastUndoSession else {
+            renameFeedbackMessage = "Keine Umbenennung zum Rückgängig-Machen vorhanden."
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = RenameExecutor.undo(session: lastUndoSession)
+
+            DispatchQueue.main.async {
+                self?.applyUndoResult(result)
             }
         }
     }
@@ -399,6 +489,10 @@ final class AppViewModel: ObservableObject {
         previewListMode = mode
     }
 
+    func selectSourceListMode(_ mode: SourceListMode) {
+        sourceListMode = mode
+    }
+
     func updateRule(_ updatedRule: RenameRule) {
         renameFeedbackMessage = nil
         guard let index = rules.firstIndex(where: { $0.id == updatedRule.id }) else {
@@ -456,7 +550,7 @@ final class AppViewModel: ObservableObject {
     }
 
     private func applyRenameResult(_ result: RenameExecutionResult, basedOn previews: [PreviewItem]) {
-        if result.failures.isEmpty {
+        if !result.succeededIDs.isEmpty {
             files = previews.map { preview in
                 let nextURL = result.succeededIDs.contains(preview.id) ? preview.targetURL : preview.source.url
                 return FileItem(
@@ -466,6 +560,13 @@ final class AppViewModel: ObservableObject {
                     isSelected: preview.source.isSelected
                 )
             }
+            lastUndoSession = UndoRenameSession(
+                operations: result.succeededOperations,
+                createdAt: Date()
+            )
+        }
+
+        if result.failures.isEmpty {
             renameFeedbackMessage = result.succeededIDs.isEmpty
                 ? "Keine Dateien mussten umbenannt werden."
                 : "\(result.succeededIDs.count) Dateien erfolgreich umbenannt."
@@ -473,6 +574,70 @@ final class AppViewModel: ObservableObject {
         }
 
         let firstFailure = result.failures.values.sorted().first ?? "Unbekannter Fehler"
-        renameFeedbackMessage = "\(result.failures.count) Dateien konnten nicht umbenannt werden. \(firstFailure)"
+        if result.succeededIDs.isEmpty {
+            renameFeedbackMessage = "\(result.failures.count) Dateien konnten nicht umbenannt werden. \(firstFailure)"
+        } else {
+            renameFeedbackMessage = "\(result.succeededIDs.count) Dateien umbenannt, \(result.failures.count) fehlgeschlagen. \(firstFailure)"
+        }
+    }
+
+    private func applyUndoResult(_ result: UndoExecutionResult) {
+        guard let session = lastUndoSession else {
+            renameFeedbackMessage = "Keine Umbenennung zum Rückgängig-Machen vorhanden."
+            return
+        }
+
+        let restoredByID = Dictionary(uniqueKeysWithValues: result.restoredOperations.map { ($0.fileID, $0) })
+        var updatedFiles = Dictionary(uniqueKeysWithValues: files.map { ($0.id, $0) })
+
+        for operation in session.operations {
+            guard let restored = restoredByID[operation.fileID] else {
+                continue
+            }
+
+            updatedFiles[operation.fileID] = FileItem(
+                id: operation.fileID,
+                url: restored.originalURL,
+                accessURL: restored.accessURL,
+                isSelected: restored.isSelected
+            )
+        }
+
+        files = files.compactMap { updatedFiles[$0.id] }
+
+        let missingRestoredFiles = session.operations
+            .filter { updatedFiles[$0.fileID] == nil && result.restoredIDs.contains($0.fileID) }
+            .map {
+                FileItem(
+                    id: $0.fileID,
+                    url: $0.originalURL,
+                    accessURL: $0.accessURL,
+                    isSelected: $0.isSelected
+                )
+            }
+
+        if !missingRestoredFiles.isEmpty {
+            files.append(contentsOf: missingRestoredFiles)
+        }
+
+        if result.failures.isEmpty {
+            renameFeedbackMessage = result.restoredIDs.count == 1
+                ? "Letzte Umbenennung rückgängig gemacht."
+                : "\(result.restoredIDs.count) Umbenennungen rückgängig gemacht."
+            lastUndoSession = nil
+            return
+        }
+
+        let remainingOperations = session.operations.filter { !result.restoredIDs.contains($0.fileID) }
+        lastUndoSession = remainingOperations.isEmpty
+            ? nil
+            : UndoRenameSession(operations: remainingOperations, createdAt: session.createdAt)
+
+        let firstFailure = result.failures.values.sorted().first ?? "Unbekannter Fehler"
+        if result.restoredIDs.isEmpty {
+            renameFeedbackMessage = "Undo fehlgeschlagen. \(firstFailure)"
+        } else {
+            renameFeedbackMessage = "\(result.restoredIDs.count) Umbenennungen rückgängig gemacht, \(result.failures.count) fehlgeschlagen. \(firstFailure)"
+        }
     }
 }

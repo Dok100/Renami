@@ -22,8 +22,7 @@ enum ValidationService {
             }
 
             if preview.isSelected,
-               preview.targetURL.standardizedFileURL != preview.source.url.standardizedFileURL,
-               FileManager.default.fileExists(atPath: preview.targetURL.path(percentEncoded: false))
+               existingTargetCollisionExists(for: preview)
             {
                 issues.append(ValidationIssue(kind: .existingTargetCollision, message: "Zieldatei existiert bereits"))
             }
@@ -41,5 +40,32 @@ enum ValidationService {
 
         let grouped = Dictionary(grouping: selectedTargets, by: \.self)
         return Set(grouped.compactMap { $0.value.count > 1 ? $0.key : nil })
+    }
+
+    private static func existingTargetCollisionExists(for preview: PreviewItem) -> Bool {
+        let targetURL = preview.targetURL.standardizedFileURL
+        let sourceURL = preview.source.url.standardizedFileURL
+
+        guard FileManager.default.fileExists(atPath: targetURL.path(percentEncoded: false)) else {
+            return false
+        }
+
+        if targetURL == sourceURL {
+            return false
+        }
+
+        return !refersToSameFile(lhs: sourceURL, rhs: targetURL)
+    }
+
+    private static func refersToSameFile(lhs: URL, rhs: URL) -> Bool {
+        let keys: Set<URLResourceKey> = [.fileResourceIdentifierKey]
+        let lhsIdentifier = try? lhs.resourceValues(forKeys: keys).fileResourceIdentifier
+        let rhsIdentifier = try? rhs.resourceValues(forKeys: keys).fileResourceIdentifier
+
+        guard let lhsIdentifier, let rhsIdentifier else {
+            return false
+        }
+
+        return "\(lhsIdentifier)" == "\(rhsIdentifier)"
     }
 }

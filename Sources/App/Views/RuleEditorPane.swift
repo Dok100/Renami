@@ -6,6 +6,7 @@ struct RuleEditorPane: View {
     @State private var presetName = ""
     @State private var expandedRuleIDs = Set<UUID>()
     @State private var draggedRuleID: UUID?
+    @State private var dropTargetRuleID: UUID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -17,7 +18,7 @@ struct RuleEditorPane: View {
             }
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 24) {
                     ForEach(orderedRuleGroups) { group in
                         RuleSectionBlock(
                             section: group.section,
@@ -25,6 +26,7 @@ struct RuleEditorPane: View {
                             bindingForRuleID: binding(for:),
                             expandedRuleIDs: $expandedRuleIDs,
                             draggedRuleID: $draggedRuleID,
+                            dropTargetRuleID: $dropTargetRuleID,
                             moveRuleUp: viewModel.moveRuleUp,
                             moveRuleDown: viewModel.moveRuleDown,
                             moveRuleBefore: viewModel.moveRule,
@@ -35,9 +37,16 @@ struct RuleEditorPane: View {
                 .padding(.bottom, 8)
             }
         }
-        .padding(18)
+        .padding(16)
         .frame(minWidth: 380, idealWidth: 430, maxWidth: 470, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(nsColor: .windowBackgroundColor))
+        .overlay(alignment: .top) {
+            if viewModel.activeStep == 2 {
+                Rectangle()
+                    .foregroundStyle(Color.accentColor.opacity(0.35))
+                    .frame(height: 2)
+            }
+        }
         .onAppear {
             presetName = viewModel.presetName(for: viewModel.selectedPresetID)
             syncExpandedRules()
@@ -48,19 +57,24 @@ struct RuleEditorPane: View {
         .onChange(of: viewModel.rules) { _ in
             syncExpandedRules()
         }
+        .onChange(of: draggedRuleID) { draggedRuleID in
+            if draggedRuleID == nil {
+                dropTargetRuleID = nil
+            }
+        }
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text("2")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Color.accentColor)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                     .background(Capsule().fill(Color.accentColor.opacity(0.12)))
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Regeln")
                         .font(.title3.weight(.semibold))
                     Text("Die Reihenfolge wirkt von oben nach unten. Starte mit den wenigen Regeln, die den Zielnamen wirklich formen.")
@@ -76,9 +90,9 @@ struct RuleEditorPane: View {
     }
 
     private var presetPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Presets")
                         .font(.headline)
                 }
@@ -133,7 +147,7 @@ struct RuleEditorPane: View {
             }
             .buttonStyle(.bordered)
         }
-        .padding(14)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(nsColor: .controlBackgroundColor))
@@ -141,7 +155,7 @@ struct RuleEditorPane: View {
     }
 
     private var onboardingHint: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Schneller Einstieg")
                 .font(.headline)
 
@@ -155,7 +169,7 @@ struct RuleEditorPane: View {
                 suggestionButton(for: .dateStamp, label: "Datum")
             }
         }
-        .padding(14)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color.accentColor.opacity(0.06))
@@ -282,13 +296,14 @@ private struct RuleSectionBlock: View {
     let bindingForRuleID: (UUID) -> Binding<RenameRule>
     @Binding var expandedRuleIDs: Set<UUID>
     @Binding var draggedRuleID: UUID?
+    @Binding var dropTargetRuleID: UUID?
     let moveRuleUp: (UUID) -> Void
     let moveRuleDown: (UUID) -> Void
     let moveRuleBefore: (UUID, UUID) -> Void
     let allRules: [RenameRule]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 Text(section.title)
                     .font(.headline)
@@ -302,33 +317,42 @@ private struct RuleSectionBlock: View {
 
             VStack(spacing: 10) {
                 ForEach(rules) { rule in
-                    RuleCard(
-                        rule: bindingForRuleID(rule.id),
-                        isExpanded: Binding(
-                            get: { expandedRuleIDs.contains(rule.id) },
-                            set: { isExpanded in
-                                if isExpanded {
-                                    expandedRuleIDs.insert(rule.id)
-                                } else {
-                                    expandedRuleIDs.remove(rule.id)
-                                }
-                            }
-                        ),
-                        isDragged: draggedRuleID == rule.id,
-                        onStartDrag: { draggedRuleID = rule.id },
-                        onMoveUp: { moveRuleUp(rule.id) },
-                        onMoveDown: { moveRuleDown(rule.id) },
-                        canMoveUp: canMoveUp(rule.id),
-                        canMoveDown: canMoveDown(rule.id)
-                    )
-                    .onDrop(
-                        of: [UTType.text],
-                        delegate: RuleDropDelegate(
-                            targetRuleID: rule.id,
-                            draggedRuleID: $draggedRuleID,
-                            moveRuleBefore: moveRuleBefore
+                    VStack(spacing: 6) {
+                        RuleDropIndicator(
+                            isActiveTarget: dropTargetRuleID == rule.id && draggedRuleID != rule.id,
+                            isDragging: draggedRuleID != nil
                         )
-                    )
+                        .onDrop(
+                            of: [UTType.text],
+                            delegate: RuleDropDelegate(
+                                targetRuleID: rule.id,
+                                draggedRuleID: $draggedRuleID,
+                                dropTargetRuleID: $dropTargetRuleID,
+                                moveRuleBefore: moveRuleBefore
+                            )
+                        )
+
+                        RuleCard(
+                            rule: bindingForRuleID(rule.id),
+                            isExpanded: Binding(
+                                get: { expandedRuleIDs.contains(rule.id) },
+                                set: { isExpanded in
+                                    if isExpanded {
+                                        expandedRuleIDs.insert(rule.id)
+                                    } else {
+                                        expandedRuleIDs.remove(rule.id)
+                                    }
+                                }
+                            ),
+                            isDragged: draggedRuleID == rule.id,
+                            isDropTarget: dropTargetRuleID == rule.id && draggedRuleID != rule.id,
+                            onStartDrag: { draggedRuleID = rule.id },
+                            onMoveUp: { moveRuleUp(rule.id) },
+                            onMoveDown: { moveRuleDown(rule.id) },
+                            canMoveUp: canMoveUp(rule.id),
+                            canMoveDown: canMoveDown(rule.id)
+                        )
+                    }
                 }
             }
         }
@@ -349,6 +373,7 @@ private struct RuleCard: View {
     @Binding var rule: RenameRule
     @Binding var isExpanded: Bool
     let isDragged: Bool
+    let isDropTarget: Bool
     let onStartDrag: () -> Void
     let onMoveUp: () -> Void
     let onMoveDown: () -> Void
@@ -453,12 +478,20 @@ private struct RuleCard: View {
             return Color.accentColor.opacity(0.12)
         }
 
+        if isDropTarget {
+            return Color.accentColor.opacity(0.09)
+        }
+
         return rule.isEnabled ? Color.accentColor.opacity(0.06) : Color(nsColor: .controlBackgroundColor)
     }
 
     private var cardBorder: Color {
         if isDragged {
             return Color.accentColor.opacity(0.35)
+        }
+
+        if isDropTarget {
+            return Color.accentColor.opacity(0.32)
         }
 
         return rule.isEnabled ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.08)
@@ -569,9 +602,29 @@ private struct RuleCard: View {
     }
 }
 
+private struct RuleDropIndicator: View {
+    let isActiveTarget: Bool
+    let isDragging: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 999, style: .continuous)
+            .fill(isActiveTarget ? Color.accentColor.opacity(0.95) : Color.clear)
+            .frame(height: isDragging ? 8 : 4)
+            .overlay {
+                if isDragging, !isActiveTarget {
+                    RoundedRectangle(cornerRadius: 999, style: .continuous)
+                        .strokeBorder(Color.accentColor.opacity(0.18), lineWidth: 1)
+                }
+            }
+            .opacity(isDragging ? 1 : 0.001)
+            .animation(.easeInOut(duration: 0.12), value: isActiveTarget)
+    }
+}
+
 private struct RuleDropDelegate: DropDelegate {
     let targetRuleID: UUID
     @Binding var draggedRuleID: UUID?
+    @Binding var dropTargetRuleID: UUID?
     let moveRuleBefore: (UUID, UUID) -> Void
 
     func validateDrop(info _: DropInfo) -> Bool {
@@ -583,10 +636,18 @@ private struct RuleDropDelegate: DropDelegate {
             return
         }
 
+        dropTargetRuleID = targetRuleID
         moveRuleBefore(draggedRuleID, targetRuleID)
     }
 
+    func dropExited(info _: DropInfo) {
+        if dropTargetRuleID == targetRuleID {
+            dropTargetRuleID = nil
+        }
+    }
+
     func performDrop(info _: DropInfo) -> Bool {
+        dropTargetRuleID = nil
         draggedRuleID = nil
         return true
     }

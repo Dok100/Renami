@@ -21,21 +21,29 @@ struct PreviewPane: View {
 
             approvalBar
         }
-        .padding(18)
+        .padding(16)
         .frame(minWidth: 480, idealWidth: 560, maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .overlay(alignment: .top) {
+            if viewModel.activeStep == 3 {
+                Rectangle()
+                    .foregroundStyle(Color.accentColor.opacity(0.35))
+                    .frame(height: 2)
+            }
+        }
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text("3")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(viewModel.errorCount > 0 ? .red : .green)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                     .background(Capsule().fill((viewModel.errorCount > 0 ? Color.red : Color.green).opacity(0.12)))
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Vorschau und Freigabe")
                         .font(.title3.weight(.semibold))
                     Text("Vergleiche alten und neuen Namen, prüfe Konflikte und starte erst dann die Umbenennung.")
@@ -49,7 +57,7 @@ struct PreviewPane: View {
     }
 
     private var summaryBar: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             SummaryChip(title: "Änderungen", value: "\(viewModel.changedCount)", tint: .accentColor)
             SummaryChip(title: "Konflikte", value: "\(viewModel.errorCount)", tint: viewModel.errorCount > 0 ? .red : .secondary)
             SummaryChip(title: "Unverändert", value: "\(viewModel.unchangedCount)", tint: .secondary)
@@ -140,6 +148,16 @@ struct PreviewPane: View {
                 }
 
                 Spacer()
+
+                if viewModel.canUndoLastRename {
+                    Button(viewModel.undoButtonTitle) {
+                        DispatchQueue.main.async {
+                            viewModel.undoLastRename()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
 
                 Button(viewModel.renameButtonTitle) {
                     DispatchQueue.main.async {

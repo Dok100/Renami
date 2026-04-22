@@ -15,6 +15,9 @@ Das Repository vom generischen Framework in eine baubare, testbare macOS-App fue
 ## Naechste Ausbaustufen
 
 - Preset-Verwaltung mit Datei-Import und -Export abrunden
+- Undo fuer die letzte Umbenennung mit klarer Session-Grenze in der laufenden App
+- linke Quellenliste mit Fokusfiltern fuer Alle, Geaendert und Konflikte
+- staerkere Reorder-Rueckmeldung fuer fachlich relevante Regelreihenfolge
 - weitere Regeln wie Diakritika-Entfernung oder feste Namensmuster
 - bessere Ordner- und Profi-Workflows
-- Undo-Konzept und Protokollierung
+- Undo-Konzept ueber mehrere Sessions und Protokollierung
