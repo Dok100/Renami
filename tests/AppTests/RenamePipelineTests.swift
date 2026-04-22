@@ -44,4 +44,45 @@ final class RenamePipelineTests: XCTestCase {
 
         XCTAssertEqual(result, "Report_Q1_2026_")
     }
+
+    func testTitleCasePreservesDatePrefixAndSeparators() {
+        let file = FileItem(url: URL(fileURLWithPath: "/tmp/report.txt"))
+        let rules = [
+            RenameRule(kind: .caseTransform, isEnabled: true, caseStyle: .title),
+        ]
+
+        let result = RenamePipeline.apply(
+            baseName: "2026-03-12_zinseszins_rechner",
+            rules: rules,
+            context: RenameContext(itemIndex: 0, fileItem: file)
+        )
+
+        XCTAssertEqual(result, "2026-03-12_Zinseszins_Rechner")
+    }
+
+    func testDateStampDoesNotDuplicateAfterTitleCaseWhenDatePrefixAlreadyExists() throws {
+        let manualDate = try XCTUnwrap(
+            Calendar(identifier: .iso8601).date(from: DateComponents(year: 2026, month: 4, day: 18))
+        )
+        let file = FileItem(url: URL(fileURLWithPath: "/tmp/report.txt"))
+        let rules = [
+            RenameRule(kind: .caseTransform, isEnabled: true, caseStyle: .title),
+            RenameRule(
+                kind: .dateStamp,
+                isEnabled: true,
+                manualDate: manualDate,
+                dateSource: .manual,
+                datePosition: .prefix,
+                onlyIfNoDatePrefixExists: true
+            ),
+        ]
+
+        let result = RenamePipeline.apply(
+            baseName: "2026-03-12_zinseszins_rechner",
+            rules: rules,
+            context: RenameContext(itemIndex: 0, fileItem: file)
+        )
+
+        XCTAssertEqual(result, "2026-03-12_Zinseszins_Rechner")
+    }
 }
