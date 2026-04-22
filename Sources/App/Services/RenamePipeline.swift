@@ -202,13 +202,39 @@ enum RenamePipeline {
         case .upper:
             text.uppercased()
         case .title:
-            text
-                .split(whereSeparator: { $0 == " " || $0 == "_" || $0 == "-" })
-                .map { token in
-                    token.prefix(1).uppercased() + token.dropFirst().lowercased()
-                }
-                .joined(separator: " ")
+            titleCasePreservingSeparators(in: text)
         }
+    }
+
+    private static func titleCasePreservingSeparators(in text: String) -> String {
+        var result = ""
+        var currentToken = ""
+
+        for character in text {
+            if character.isLetter || character.isNumber {
+                currentToken.append(character)
+            } else {
+                if !currentToken.isEmpty {
+                    result.append(titleCaseToken(currentToken))
+                    currentToken.removeAll(keepingCapacity: true)
+                }
+                result.append(character)
+            }
+        }
+
+        if !currentToken.isEmpty {
+            result.append(titleCaseToken(currentToken))
+        }
+
+        return result
+    }
+
+    private static func titleCaseToken(_ token: String) -> String {
+        guard token.rangeOfCharacter(from: .letters) != nil else {
+            return token
+        }
+
+        return token.prefix(1).uppercased() + token.dropFirst().lowercased()
     }
 
     private static func sanitizeForWindows(_ text: String) -> String {
