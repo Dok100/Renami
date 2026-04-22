@@ -3,21 +3,21 @@ import XCTest
 
 @MainActor
 final class PreviewListModeTests: XCTestCase {
-    func testChangedFirstModePlacesChangedItemsBeforeUnchangedItems() {
+    func testAllModePlacesConflictsThenChangedThenUnchanged() {
         let viewModel = AppViewModel()
         viewModel.files = [
             FileItem(url: URL(fileURLWithPath: "/tmp/alpha.txt")),
             FileItem(url: URL(fileURLWithPath: "/tmp/beta.txt")),
         ]
         viewModel.rules = [
-            RenameRule(kind: .findReplace, isEnabled: true, textValue: "alpha", secondaryTextValue: "renamed"),
+            RenameRule(kind: .findReplace, isEnabled: true, textValue: "alpha", secondaryTextValue: ""),
         ]
-        viewModel.previewListMode = .changedFirst
+        viewModel.previewListMode = .all
 
         let displayed = viewModel.displayedPreviews
 
         XCTAssertEqual(displayed.map(\.source.originalFilename), ["alpha.txt", "beta.txt"])
-        XCTAssertTrue(displayed.first?.isChanged == true)
+        XCTAssertTrue(displayed.first?.hasErrors == true)
         XCTAssertTrue(displayed.last?.isChanged == false)
     }
 
@@ -32,5 +32,23 @@ final class PreviewListModeTests: XCTestCase {
         viewModel.previewListMode = .changedOnly
 
         XCTAssertTrue(viewModel.displayedPreviews.isEmpty)
+    }
+
+    func testConflictsOnlyModeFiltersToErrors() {
+        let viewModel = AppViewModel()
+        viewModel.files = [
+            FileItem(url: URL(fileURLWithPath: "/tmp/alpha.txt")),
+            FileItem(url: URL(fileURLWithPath: "/tmp/beta.txt")),
+        ]
+        viewModel.rules = [
+            RenameRule(kind: .findReplace, isEnabled: true, textValue: "alpha", secondaryTextValue: ""),
+        ]
+        viewModel.previewListMode = .conflictsOnly
+
+        let displayed = viewModel.displayedPreviews
+
+        XCTAssertEqual(displayed.count, 1)
+        XCTAssertEqual(displayed.first?.source.originalFilename, "alpha.txt")
+        XCTAssertTrue(displayed.first?.hasErrors == true)
     }
 }

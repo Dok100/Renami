@@ -14,6 +14,12 @@ struct ValidationIssue: Identifiable, Hashable {
 }
 
 struct PreviewItem: Identifiable, Hashable {
+    enum Status {
+        case conflict
+        case changed
+        case unchanged
+    }
+
     let id: UUID
     let source: FileItem
     let proposedBaseName: String
@@ -31,6 +37,25 @@ struct PreviewItem: Identifiable, Hashable {
 
     var isChanged: Bool {
         targetFilename != source.originalFilename
+    }
+
+    var status: Status {
+        if hasErrors {
+            return .conflict
+        }
+
+        return isChanged ? .changed : .unchanged
+    }
+
+    var statusTitle: String {
+        switch status {
+        case .conflict:
+            "Konflikt"
+        case .changed:
+            "Wird umbenannt"
+        case .unchanged:
+            "Unverändert"
+        }
     }
 
     var validationSummary: String {

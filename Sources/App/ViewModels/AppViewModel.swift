@@ -5,15 +5,18 @@ import UniformTypeIdentifiers
 @MainActor
 final class AppViewModel: ObservableObject {
     enum PreviewListMode: String, CaseIterable {
-        case changedFirst
+        case all
         case changedOnly
+        case conflictsOnly
 
         var title: String {
             switch self {
-            case .changedFirst:
-                "Geändert zuerst"
+            case .all:
+                "Alle"
             case .changedOnly:
                 "Nur geändert"
+            case .conflictsOnly:
+                "Nur Konflikte"
             }
         }
     }
@@ -22,7 +25,7 @@ final class AppViewModel: ObservableObject {
     @Published var rules: [RenameRule] = RenameRule.defaults()
     @Published var presets: [PresetStore.Preset] = PresetStore.load()
     @Published var selectedPresetID: PresetStore.Preset.ID?
-    @Published var previewListMode: PreviewListMode = .changedFirst
+    @Published var previewListMode: PreviewListMode = .all
     @Published private var renameFeedbackMessage: String?
 
     private var currentPreviews: [PreviewItem] {
@@ -39,15 +42,25 @@ final class AppViewModel: ObservableObject {
 
     var displayedPreviews: [PreviewItem] {
         let filtered = switch previewListMode {
-        case .changedFirst:
+        case .all:
             currentPreviews
         case .changedOnly:
             currentPreviews.filter(\.isChanged)
+        case .conflictsOnly:
+            currentPreviews.filter(\.hasErrors)
         }
 
         return filtered.sorted { lhs, rhs in
-            if lhs.isChanged != rhs.isChanged {
-                return lhs.isChanged && !rhs.isChanged
+            let rank: (PreviewItem) -> Int = { preview in
+                switch preview.status {
+                case .conflict: 0
+                case .changed: 1
+                case .unchanged: 2
+                }
+            }
+
+            if rank(lhs) != rank(rhs) {
+                return rank(lhs) < rank(rhs)
             }
 
             return lhs.source.originalFilename.localizedCaseInsensitiveCompare(rhs.source.originalFilename) == .orderedAscending
@@ -55,11 +68,95 @@ final class AppViewModel: ObservableObject {
     }
 
     var changedCount: Int {
-        currentPreviews.filter(\.isChanged).count
+        currentPreviews.count(where: \.isChanged)
     }
 
     var errorCount: Int {
-        currentPreviews.filter(\.hasErrors).count
+        currentPreviews.count(where: \.hasErrors)
+    }
+
+    var unchangedCount: Int {
+        currentPreviews.count { !$0.isChanged }
+    }
+
+    var activeRuleCount: Int {
+        rules.count(where: \.isEnabled)
+    }
+
+    var renameCandidateCount: Int {
+        currentPreviews.count { $0.isSelected && $0.isChanged && !$0.hasErrors }
+    }
+
+    var selectedConflictCount: Int {
+        currentPreviews.count { $0.isSelected && $0.hasErrors }
+    }
+
+    var selectionSummary: String {
+        if files.isEmpty {
+            return "Noch keine Quellen geladen"
+        }
+
+        if selectedCount == 0 {
+            return "Keine Datei ausgewählt"
+        }
+
+        return "\(selectedCount) von \(files.count) Dateien ausgewählt"
+    }
+
+    var rulesSummary: String {
+        if activeRuleCount == 0 {
+            return "Noch keine Regel aktiv"
+        }
+
+        return "\(activeRuleCount) Regeln aktiv"
+    }
+
+    var previewSummary: String {
+        if files.isEmpty {
+            return "Importiere zuerst Dateien oder Ordner."
+        }
+
+        if activeRuleCount == 0 {
+            return "Aktiviere mindestens eine Regel, damit die Vorschau einen Unterschied zeigen kann."
+        }
+
+        if currentPreviews.isEmpty {
+            return "Noch keine Vorschau verfügbar."
+        }
+
+        if errorCount > 0 {
+            return "\(errorCount) Konflikte müssen vor dem Umbenennen behoben werden."
+        }
+
+        if renameCandidateCount == 0 {
+            return "Aktuell gibt es keine ausgewählten Dateien mit Änderungen."
+        }
+
+        return "\(renameCandidateCount) Dateien können sicher umbenannt werden."
+    }
+
+    var renameButtonTitle: String {
+        renameCandidateCount > 0 ? "\(renameCandidateCount) Dateien umbenennen" : "Umbenennen"
+    }
+
+    var renameHelpText: String {
+        if files.isEmpty {
+            return "Der Ablauf startet mit Quellen auf der linken Seite."
+        }
+
+        if activeRuleCount == 0 {
+            return "Definiere zuerst Regeln, bevor du die Umbenennung ausführst."
+        }
+
+        if selectedConflictCount > 0 {
+            return "Konflikte blockieren die Aktion, bis alle ausgewählten Dateien gültig sind."
+        }
+
+        if renameCandidateCount == 0 {
+            return "Es gibt derzeit keine ausgewählten Dateien mit einer tatsächlichen Änderung."
+        }
+
+        return "Nur ausgewählte, gültige und tatsächlich geänderte Dateien werden umbenannt."
     }
 
     var canRename: Bool {
@@ -85,6 +182,10 @@ final class AppViewModel: ObservableObject {
 
     var allowedDropTypes: [UTType] {
         [.fileURL]
+    }
+
+    var hasPreviewContent: Bool {
+        !currentPreviews.isEmpty
     }
 
     func importFiles() {
@@ -150,6 +251,20 @@ final class AppViewModel: ObservableObject {
         }
 
         rules.swapAt(index, index + 1)
+    }
+
+    func moveRule(_ ruleID: UUID, before targetRuleID: UUID) {
+        renameFeedbackMessage = nil
+        guard ruleID != targetRuleID,
+              let sourceIndex = rules.firstIndex(where: { $0.id == ruleID }),
+              let targetIndex = rules.firstIndex(where: { $0.id == targetRuleID })
+        else {
+            return
+        }
+
+        let movedRule = rules.remove(at: sourceIndex)
+        let adjustedTargetIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex
+        rules.insert(movedRule, at: adjustedTargetIndex)
     }
 
     func requestRename() {
