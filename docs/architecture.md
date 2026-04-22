@@ -37,6 +37,8 @@ Technische Leitplanken fuer eine bewusst einfache, native macOS-App zum Batch-Um
   - fuehrt nur valide, ausgewaehlte Umbenennungen aus
 - `PresetStore`
   - kapselt die spaetere Persistenz wiederverwendbarer Regelsets
+- `PresetTransferService`
+  - serialisiert Presets fuer Import und Export als einfache JSON-Dateien
 
 ## Daten und Schnittstellen
 

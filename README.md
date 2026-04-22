@@ -32,7 +32,7 @@ Der erste nutzbare Stand von Renami liefert:
   - Windows-kompatible Bereinigung
 - Validierung fuer doppelte Zielnamen, leere oder ungueltige Namen und Kollisionen mit vorhandenen Dateien
 - tatsaechliches Umbenennen im Dateisystem
-- vorbereitete Struktur fuer Presets
+- lokale Presets fuer wiederkehrende Regelkombinationen speichern, laden, aktualisieren, loeschen, exportieren und importieren
 
 ## Architektur in Kurzform
 

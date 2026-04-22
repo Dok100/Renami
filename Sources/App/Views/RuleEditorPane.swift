@@ -22,17 +22,39 @@ struct RuleEditorPane: View {
                     viewModel.applySelectedPreset()
                 }
                 .disabled(viewModel.selectedPresetID == nil)
+
+                Button("Importieren") {
+                    DispatchQueue.main.async {
+                        viewModel.importPreset()
+                    }
+                }
+
+                Button("Exportieren") {
+                    DispatchQueue.main.async {
+                        viewModel.exportSelectedPreset()
+                    }
+                }
+                .disabled(viewModel.selectedPresetID == nil)
+
+                Button("Löschen", role: .destructive) {
+                    DispatchQueue.main.async {
+                        viewModel.deleteSelectedPreset()
+                        presetName = ""
+                    }
+                }
+                .disabled(viewModel.selectedPresetID == nil)
             }
 
             HStack(spacing: 8) {
                 TextField("Aktuelle Regeln als Preset speichern", text: $presetName)
-                Button("Speichern") {
+                Button(saveButtonTitle) {
                     let nameToSave = presetName
                     DispatchQueue.main.async {
                         viewModel.saveCurrentPreset(named: nameToSave)
-                        presetName = ""
+                        presetName = viewModel.presetName(for: viewModel.selectedPresetID)
                     }
                 }
+                .disabled(trimmedPresetName.isEmpty)
             }
 
             ScrollView {
@@ -52,6 +74,12 @@ struct RuleEditorPane: View {
         .padding(20)
         .frame(minWidth: 360, idealWidth: 420, maxWidth: 460, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(nsColor: .windowBackgroundColor))
+        .onAppear {
+            presetName = viewModel.presetName(for: viewModel.selectedPresetID)
+        }
+        .onChange(of: viewModel.selectedPresetID) { selectedPresetID in
+            presetName = viewModel.presetName(for: selectedPresetID)
+        }
     }
 
     private func binding(for ruleID: UUID) -> Binding<RenameRule> {
@@ -76,6 +104,14 @@ struct RuleEditorPane: View {
                 }
             }
         )
+    }
+
+    private var trimmedPresetName: String {
+        presetName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var saveButtonTitle: String {
+        viewModel.selectedPresetID == nil ? "Speichern" : "Aktualisieren"
     }
 }
 

@@ -171,14 +171,21 @@ final class AppViewModel: ObservableObject {
     }
 
     func saveCurrentPreset(named name: String) {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
+        guard let outcome = PresetStore.upsertPreset(named: name, rules: rules, selectedPresetID: selectedPresetID) else {
+            renameFeedbackMessage = "Preset-Name fehlt."
             return
         }
 
-        let preset = PresetStore.Preset(id: UUID(), name: trimmed, rules: rules)
-        presets.append(preset)
-        PresetStore.save(presets)
+        presets = PresetStore.load()
+
+        switch outcome {
+        case let .created(preset):
+            selectedPresetID = preset.id
+            renameFeedbackMessage = "Preset „\(preset.name)“ gespeichert."
+        case let .updated(preset):
+            selectedPresetID = preset.id
+            renameFeedbackMessage = "Preset „\(preset.name)“ aktualisiert."
+        }
     }
 
     func applySelectedPreset() {
@@ -190,10 +197,87 @@ final class AppViewModel: ObservableObject {
         }
 
         rules = preset.rules
+        renameFeedbackMessage = "Preset „\(preset.name)“ geladen."
+    }
+
+    func deleteSelectedPreset() {
+        guard let selectedPresetID,
+              let preset = presets.first(where: { $0.id == selectedPresetID })
+        else {
+            renameFeedbackMessage = "Kein Preset ausgewählt."
+            return
+        }
+
+        guard PresetStore.deletePreset(id: selectedPresetID) else {
+            renameFeedbackMessage = "Preset konnte nicht gelöscht werden."
+            return
+        }
+
+        presets = PresetStore.load()
+        self.selectedPresetID = nil
+        renameFeedbackMessage = "Preset „\(preset.name)“ gelöscht."
+    }
+
+    func exportSelectedPreset() {
+        guard let selectedPresetID,
+              let preset = presets.first(where: { $0.id == selectedPresetID })
+        else {
+            renameFeedbackMessage = "Kein Preset ausgewählt."
+            return
+        }
+
+        do {
+            let exportedURL = try PresetTransferService.exportPreset(preset)
+            if exportedURL != nil {
+                renameFeedbackMessage = "Preset „\(preset.name)“ exportiert."
+            }
+        } catch {
+            renameFeedbackMessage = error.localizedDescription
+        }
+    }
+
+    func importPreset() {
+        do {
+            guard let importedPreset = try PresetTransferService.importPreset() else {
+                return
+            }
+
+            guard let outcome = PresetStore.upsertPreset(
+                named: importedPreset.name,
+                rules: importedPreset.rules,
+                selectedPresetID: nil
+            ) else {
+                renameFeedbackMessage = "Preset-Datei ist ungültig."
+                return
+            }
+
+            presets = PresetStore.load()
+
+            switch outcome {
+            case let .created(preset):
+                selectedPresetID = preset.id
+                renameFeedbackMessage = "Preset „\(preset.name)“ importiert."
+            case let .updated(preset):
+                selectedPresetID = preset.id
+                renameFeedbackMessage = "Preset „\(preset.name)“ importiert und aktualisiert."
+            }
+        } catch {
+            renameFeedbackMessage = error.localizedDescription
+        }
     }
 
     func selectPreset(_ presetID: PresetStore.Preset.ID?) {
         selectedPresetID = presetID
+    }
+
+    func presetName(for presetID: PresetStore.Preset.ID?) -> String {
+        guard let presetID,
+              let preset = presets.first(where: { $0.id == presetID })
+        else {
+            return ""
+        }
+
+        return preset.name
     }
 
     func selectPreviewListMode(_ mode: PreviewListMode) {

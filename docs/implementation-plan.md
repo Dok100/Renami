@@ -14,7 +14,7 @@ Das Repository vom generischen Framework in eine baubare, testbare macOS-App fue
 
 ## Naechste Ausbaustufen
 
-- Preset-Speicherung aktivieren
+- Preset-Verwaltung mit Datei-Import und -Export abrunden
 - weitere Regeln wie Diakritika-Entfernung oder feste Namensmuster
 - bessere Ordner- und Profi-Workflows
 - Undo-Konzept und Protokollierung
