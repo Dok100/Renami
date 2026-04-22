@@ -1,38 +1,42 @@
 # Security Baseline
 
-Diese Vorlage bringt eine minimale Sicherheitsbasis fuer neue Projekte mit.
+Diese Datei beschreibt die aktuelle Sicherheitsbasis von Renami als lokale macOS-App mit GitHub-gestuetztem Entwicklungsworkflow.
 
 ## Enthalten
 
-- `.env`-Dateien und private Schluessel sind in `.gitignore`
-- `scripts/check-secrets.sh` blockiert typische Secrets im Pre-Commit
-- `scripts/pre-commit.sh` fuehrt lokale Basischecks vor Commits aus
-- `scripts/install-git-hooks.sh` installiert den Git-Hook automatisch beim Bootstrap
-- `Dependabot` aktualisiert Abhaengigkeiten und GitHub Actions regelmaessig
-- `CodeQL` ist fuer unterstuetzte Stack-Profile in GitHub Actions enthalten
-- Stack-Profile enthalten Security-Checks wie `npm audit`, `bandit` und `pip-audit`
-- `SECURITY.md` beschreibt den Responsible-Disclosure-Prozess
-- `docs/privacy/` enthaelt die Datenschutz-Basis fuer Datenfluesse, Dienstleister und Loeschregeln
+- `.gitignore` deckt lokale Build-Artefakte, abgeleitete Xcode-Daten und offensichtliche lokale Geheimnisse ab
+- `scripts/check-secrets.sh` blockiert typische Secrets im lokalen Pre-Commit
+- `scripts/pre-commit.sh` fuehrt die lokalen Basischecks vor Commits aus
+- `scripts/install-git-hooks.sh` kann den Git-Hook lokal installieren
+- `make security` prueft grundlegende Sicherheitsannahmen wie Secret-Muster, App Sandbox und Code-Signing-Konfiguration
+- GitHub Actions CI und CodeQL sind unter `.github/workflows/` vorhanden
+- `Dependabot` aktualisiert GitHub-Actions-Abhaengigkeiten ueber `.github/dependabot.yml`
+- `SECURITY.md` beschreibt den Responsible-Disclosure-Prozess fuer dieses Repository
+- `docs/privacy/` enthaelt die Datenschutz-Basis fuer lokale Dateiverarbeitung, Dienstleister und Loeschregeln
 
 ## `.env`-Policy
 
+- Renami benoetigt fuer die Kernfunktion aktuell keine Laufzeit-Umgebungsvariablen
 - echte Geheimnisse gehoeren nur in `.env` oder einen Secret-Manager
 - `.env.example` darf nur Platzhalter oder offensichtliche Beispielwerte enthalten
-- neue Umgebungsvariablen muessen immer zuerst in `.env.example` dokumentiert werden
+- neue Umgebungsvariablen muessen immer zuerst in `.env.example` dokumentiert werden, falls sie spaeter eingefuehrt werden
 - keine Tokens, privaten Zertifikate oder Zugangsdaten in Markdown, Tests oder Fixtures ablegen
-- Kontaktangaben in `SECURITY.md` muessen vor dem ersten oeffentlichen Push angepasst werden
+- Kontaktweg in `SECURITY.md` muss konsistent mit dem realen Repository-Zugriff bleiben
 
 ## Erwartete Arbeitsweise
 
-- vor dem ersten Commit `make install` und anschliessend `make precommit` ausfuehren
-- Security-Audits auch in CI laufen lassen
+- vor Commits `make precommit` ausfuehren
+- vor Releases mindestens `make test` und `make security` ausfuehren
+- Git-Hooks lokal installieren, wenn der Workflow dauerhaft auf derselben Maschine genutzt wird
 - Dependabot-PRs nicht blind mergen, sondern durch Tests und Review absichern
+- sicherheitsrelevante Aenderungen an Dateizugriff, Sandbox oder Rename-Logik in `docs/decision-log.md` oder der passenden Feature-Datei dokumentieren
 
 ## Grenzen
 
 - Musterbasierte Secret-Pruefung findet nicht alles
-- `npm audit` und `pip-audit` benoetigen Netzwerkzugriff
-- CSP- und Header-Profile muessen je nach Produkt und Integrationen nachgeschaerft werden
+- CodeQL und CI decken nicht jede lokale Laufzeit- oder UI-Regression ab
+- lokale Desktop-Apps haben andere Risiken als Web-Apps; CSP- oder Header-Themen sind hier nicht zentral
+- Security-Scoped-Zugriffe und Sandbox-Verhalten muessen fuer spaetere Distribution ausserhalb lokaler Entwickler-Builds weiter geschaerft werden
 
 ## Abgrenzung zu Datenschutz
 
@@ -50,3 +54,4 @@ Wenn du allein arbeitest, sind diese Dateien oft die pragmatischsten Ergaenzunge
 - `docs/release-checklist.md`
 - `docs/runbook.md`
 - `docs/data-classification.md`
+- `SECURITY.md`

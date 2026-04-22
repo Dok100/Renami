@@ -10,12 +10,15 @@ Renami ist eine native macOS-App zum sicheren Umbenennen mehrerer Dateien mit Li
 - Kritische Konflikte blockieren das Umbenennen
 - Klar benannte Regeln statt technischer Power-UI
 
-## MVP
+## Aktueller Funktionsstand
 
-Der erste nutzbare Stand von Renami liefert:
+Der aktuelle Stand von Renami liefert:
 
 - Dateien und optionale Ordner via Open Panel oder Drag-and-Drop hinzufuegen
+- Ordner optional rekursiv einlesen
+- rekursiv importierte Dateien nach einfachen Dateityp-Gruppen filtern
 - Dateiliste mit Auswahlstatus, Originalname, vorgeschlagenem Namen und Validierungsstatus
+- linke Quellenliste mit Fokusfiltern fuer `Alle`, `Geaendert` und `Konflikte`
 - modulare Regelkette mit Live-Vorschau
 - Vorschau kann geaenderte Dateien priorisiert oder isoliert anzeigen
 - erste Regeln:
@@ -33,6 +36,7 @@ Der erste nutzbare Stand von Renami liefert:
 - Validierung fuer doppelte Zielnamen, leere oder ungueltige Namen und Kollisionen mit vorhandenen Dateien
 - tatsaechliches Umbenennen im Dateisystem
 - lokale Presets fuer wiederkehrende Regelkombinationen speichern, laden, aktualisieren, loeschen, exportieren und importieren
+- Undo fuer die letzte erfolgreiche Umbenennung innerhalb der laufenden App-Session
 
 ## Architektur in Kurzform
 
@@ -71,6 +75,8 @@ make test
 make build
 ```
 
+Vor einem Commit ist `make precommit` der sinnvolle Vollcheck.
+
 ## GitHub
 
 - Repository: `https://github.com/Dok100/Renami`
@@ -92,4 +98,12 @@ git push -u origin main
 
 ## Aktueller Fokus
 
-Renami wird zuerst als bewusst kleines, verstaendliches MVP umgesetzt. Nicht priorisiert sind Regex-First-UX, Finder-Erweiterungen, komplexe rekursive Workflows, Multi-Session-Undo und metadatengetriebene Benennung.
+Renami ist inzwischen ueber das reine MVP hinausgewachsen, bleibt aber bewusst einfach im Bedienkonzept. Der aktuelle Schwerpunkt liegt auf Stabilitaet, Klarheit in der UI und dem sauberen Ausbau der bestehenden Regeln, Presets und Import-Workflows.
+
+Bewusst weiterhin nicht priorisiert sind:
+
+- Regex-First-UX oder wildcard-lastige Profi-Eingaenge
+- Finder-Erweiterung
+- mehrstufiges Undo ueber mehrere Sessions
+- Metadaten- oder EXIF-basierte Benennung
+- beliebig komplexe Include-, Exclude- und Tiefenregeln fuer Ordnerimporte
