@@ -23,7 +23,8 @@ Technische Leitplanken fuer eine bewusst einfache, native macOS-App zum Batch-Um
 
 - `FileImportService`
   - importiert Dateien und optionale Ordner
-  - reduziert Ordner im MVP auf eine flache, nicht rekursive Dateiliste
+  - unterstuetzt flachen oder optional rekursiven Ordnerimport
+  - kann rekursiv importierte Dateien ueber einfache Dateityp-Gruppen eingrenzen
 - `RenameRule`
   - modelliert eine benannte, aktivierbare Regel mit leichtgewichtiger Konfiguration
   - arbeitet standardmaessig auf dem Dateinamen ohne Erweiterung
@@ -95,6 +96,5 @@ Technische Leitplanken fuer eine bewusst einfache, native macOS-App zum Batch-Um
 
 ## Offene technische Fragen
 
-- Soll das MVP Ordner nur flach oder spaeter optional rekursiv importieren?
 - Reicht `UserDefaults` fuer Presets oder ist frueh eine JSON-Datei pro Benutzer sinnvoller?
 - Welche Sandbox-/Security-Scoped-Strategie soll fuer spaetere Distribution ausserhalb lokaler Builds vertieft werden?

@@ -11,8 +11,8 @@ enum ValidationService {
                 issues.append(ValidationIssue(kind: .emptyName, message: "Leerer Dateiname"))
             }
 
-            if preview.proposedBaseName.contains("/") || preview.proposedBaseName.contains(":") {
-                issues.append(ValidationIssue(kind: .invalidCharacter, message: "Ungültige Zeichen"))
+            if preview.proposedBaseName.contains("/") {
+                issues.append(ValidationIssue(kind: .invalidCharacter, message: "Schrägstrich / ist im Dateinamen nicht erlaubt"))
             }
 
             if duplicateTargetURLs.contains(preview.targetURL.standardizedFileURL),

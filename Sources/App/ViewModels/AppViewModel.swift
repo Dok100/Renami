@@ -44,6 +44,8 @@ final class AppViewModel: ObservableObject {
     @Published var selectedPresetID: PresetStore.Preset.ID?
     @Published var previewListMode: PreviewListMode = .all
     @Published var sourceListMode: SourceListMode = .all
+    @Published var includesSubfolders = false
+    @Published var folderFileTypeFilter: FileImportService.FileTypeFilter = .allFiles
     @Published private var renameFeedbackMessage: String?
     @Published private(set) var lastUndoSession: UndoRenameSession?
 
@@ -268,7 +270,7 @@ final class AppViewModel: ObservableObject {
 
     func importFolders() {
         renameFeedbackMessage = nil
-        mergeImportedItems(FileImportService.pickFolders())
+        mergeImportedItems(FileImportService.pickFolders(), using: currentImportOptions)
     }
 
     func handleDropped(providers: [NSItemProvider]) -> Bool {
@@ -281,7 +283,7 @@ final class AppViewModel: ObservableObject {
                 }
 
                 Task { @MainActor in
-                    self?.mergeImportedItems([url])
+                    self?.mergeImportedItems([url], using: self?.currentImportOptions ?? .init())
                 }
             }
         }
@@ -493,6 +495,16 @@ final class AppViewModel: ObservableObject {
         sourceListMode = mode
     }
 
+    func setIncludesSubfolders(_ includesSubfolders: Bool) {
+        self.includesSubfolders = includesSubfolders
+        refreshFolderImportedItems()
+    }
+
+    func setFolderFileTypeFilter(_ filter: FileImportService.FileTypeFilter) {
+        folderFileTypeFilter = filter
+        refreshFolderImportedItems()
+    }
+
     func updateRule(_ updatedRule: RenameRule) {
         renameFeedbackMessage = nil
         guard let index = rules.firstIndex(where: { $0.id == updatedRule.id }) else {
@@ -503,10 +515,21 @@ final class AppViewModel: ObservableObject {
     }
 
     private func mergeImportedItems(_ urls: [URL]) {
-        let importedItems = FileImportService.buildFileItems(from: urls)
+        mergeImportedItems(urls, using: currentImportOptions)
+    }
+
+    private func mergeImportedItems(_ urls: [URL], using options: FileImportService.ImportOptions) {
+        let importedItems = FileImportService.buildFileItems(from: urls, options: options)
         let existingURLs = Set(files.map(\.url.standardizedFileURL))
         let newItems = importedItems.filter { !existingURLs.contains($0.url.standardizedFileURL) }
         files.append(contentsOf: newItems)
+    }
+
+    private var currentImportOptions: FileImportService.ImportOptions {
+        FileImportService.ImportOptions(
+            includesSubfolders: includesSubfolders,
+            fileTypeFilter: folderFileTypeFilter
+        )
     }
 
     private func prepareDirectoryAccessForRename() -> Bool {
@@ -557,7 +580,8 @@ final class AppViewModel: ObservableObject {
                     id: preview.source.id,
                     url: nextURL,
                     accessURL: preview.source.accessURL,
-                    isSelected: preview.source.isSelected
+                    isSelected: preview.source.isSelected,
+                    importSource: preview.source.importSource
                 )
             }
             lastUndoSession = UndoRenameSession(
@@ -599,7 +623,8 @@ final class AppViewModel: ObservableObject {
                 id: operation.fileID,
                 url: restored.originalURL,
                 accessURL: restored.accessURL,
-                isSelected: restored.isSelected
+                isSelected: restored.isSelected,
+                importSource: restored.importSource
             )
         }
 
@@ -612,7 +637,8 @@ final class AppViewModel: ObservableObject {
                     id: $0.fileID,
                     url: $0.originalURL,
                     accessURL: $0.accessURL,
-                    isSelected: $0.isSelected
+                    isSelected: $0.isSelected,
+                    importSource: $0.importSource
                 )
             }
 
@@ -639,5 +665,57 @@ final class AppViewModel: ObservableObject {
         } else {
             renameFeedbackMessage = "\(result.restoredIDs.count) Umbenennungen rückgängig gemacht, \(result.failures.count) fehlgeschlagen. \(firstFailure)"
         }
+    }
+
+    private func refreshFolderImportedItems() {
+        let directFiles = files.filter {
+            if case .directFile = $0.importSource {
+                return true
+            }
+            return false
+        }
+
+        let folderFiles = files.filter {
+            if case .folder = $0.importSource {
+                return true
+            }
+            return false
+        }
+
+        guard !folderFiles.isEmpty else {
+            return
+        }
+
+        let rootURLs = Array(
+            Set(folderFiles.compactMap { file -> URL? in
+                guard case let .folder(rootURL) = file.importSource else {
+                    return nil
+                }
+                return rootURL.standardizedFileURL
+            })
+        ).sorted { $0.path(percentEncoded: false) < $1.path(percentEncoded: false) }
+
+        let existingFolderFilesByURL = Dictionary(
+            uniqueKeysWithValues: folderFiles.map { ($0.url.standardizedFileURL, $0) }
+        )
+
+        let rebuiltFolderFiles = FileImportService.buildFileItems(from: rootURLs, options: currentImportOptions)
+            .map { rebuilt in
+                guard let existing = existingFolderFilesByURL[rebuilt.url.standardizedFileURL] else {
+                    return rebuilt
+                }
+
+                return FileItem(
+                    id: existing.id,
+                    url: rebuilt.url,
+                    accessURL: rebuilt.accessURL,
+                    isSelected: existing.isSelected,
+                    importSource: rebuilt.importSource
+                )
+            }
+
+        let directURLs = Set(directFiles.map(\.url.standardizedFileURL))
+        let filteredFolderFiles = rebuiltFolderFiles.filter { !directURLs.contains($0.url.standardizedFileURL) }
+        files = directFiles + filteredFolderFiles
     }
 }

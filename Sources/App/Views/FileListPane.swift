@@ -6,6 +6,7 @@ struct FileListPane: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
+            importOptionsPanel
             sourceSummary
             if !viewModel.files.isEmpty {
                 filterBar
@@ -45,6 +46,7 @@ struct FileListPane: View {
                 Rectangle()
                     .foregroundStyle(Color.accentColor.opacity(0.35))
                     .frame(height: 2)
+                    .allowsHitTesting(false)
             }
         }
     }
@@ -93,6 +95,38 @@ struct FileListPane: View {
             SourceMetric(title: "Quellen", value: "\(viewModel.files.count)", systemImage: "doc.on.doc")
             SourceMetric(title: "Auswahl", value: "\(viewModel.selectedCount)", systemImage: "checkmark.circle")
         }
+    }
+
+    private var importOptionsPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Ordnerimport")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Toggle("Unterordner einbeziehen", isOn: includeSubfoldersBinding)
+
+            HStack(spacing: 8) {
+                Text("Dateitypen")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Picker("Dateitypen", selection: fileTypeFilterBinding) {
+                    ForEach(FileImportService.FileTypeFilter.allCases, id: \.self) { filter in
+                        Text(filter.title).tag(filter)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(width: 170)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
     }
 
     private var emptyHelper: some View {
@@ -174,6 +208,28 @@ struct FileListPane: View {
             set: { mode in
                 DispatchQueue.main.async {
                     viewModel.selectSourceListMode(mode)
+                }
+            }
+        )
+    }
+
+    private var includeSubfoldersBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.includesSubfolders },
+            set: { value in
+                DispatchQueue.main.async {
+                    viewModel.setIncludesSubfolders(value)
+                }
+            }
+        )
+    }
+
+    private var fileTypeFilterBinding: Binding<FileImportService.FileTypeFilter> {
+        Binding(
+            get: { viewModel.folderFileTypeFilter },
+            set: { filter in
+                DispatchQueue.main.async {
+                    viewModel.setFolderFileTypeFilter(filter)
                 }
             }
         )

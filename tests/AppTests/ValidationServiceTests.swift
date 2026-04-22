@@ -71,4 +71,40 @@ final class ValidationServiceTests: XCTestCase {
 
         XCTAssertFalse(validated.validationIssues.contains(where: { $0.kind == .existingTargetCollision }))
     }
+
+    func testValidationAllowsColonInFilename() {
+        let directory = URL(fileURLWithPath: "/tmp/renami-tests", isDirectory: true)
+        let file = FileItem(url: directory.appendingPathComponent("quelle.txt"))
+
+        let preview = PreviewItem(
+            id: file.id,
+            source: file,
+            proposedBaseName: #"Lieferkettengesetz: Das drängt Kinder"#,
+            targetFilename: #"Lieferkettengesetz: Das drängt Kinder.txt"#,
+            targetURL: directory.appendingPathComponent(#"Lieferkettengesetz: Das drängt Kinder.txt"#),
+            validationIssues: []
+        )
+
+        let validated = ValidationService.applyValidation(to: [preview])
+
+        XCTAssertFalse(validated.first?.validationIssues.contains(where: { $0.kind == .invalidCharacter }) ?? true)
+    }
+
+    func testValidationRejectsSlashWithSpecificMessage() {
+        let directory = URL(fileURLWithPath: "/tmp/renami-tests", isDirectory: true)
+        let file = FileItem(url: directory.appendingPathComponent("quelle.txt"))
+
+        let preview = PreviewItem(
+            id: file.id,
+            source: file,
+            proposedBaseName: "Ordner/Datei",
+            targetFilename: "Ordner/Datei.txt",
+            targetURL: directory.appendingPathComponent("Ordner/Datei.txt"),
+            validationIssues: []
+        )
+
+        let validated = ValidationService.applyValidation(to: [preview])
+
+        XCTAssertEqual(validated.first?.validationIssues.first(where: { $0.kind == .invalidCharacter })?.message, "Schrägstrich / ist im Dateinamen nicht erlaubt")
+    }
 }

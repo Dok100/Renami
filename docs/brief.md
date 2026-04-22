@@ -35,7 +35,7 @@ Was wird bewusst nicht im ersten Schritt gebaut?
 
 - Regex-First-UX und Wildcards in der Standardansicht
 - Finder-Erweiterung
-- tiefe rekursive Ordner-Workflows
+- komplexe rekursive Ordner-Workflows mit Tiefensteuerung oder Include/Exclude-Regeln
 - dauerhaftes Undo/Redo ueber mehrere Sessions
 - EXIF- oder Metadaten-basierte Benennung
 

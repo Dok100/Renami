@@ -29,6 +29,7 @@ struct PreviewPane: View {
                 Rectangle()
                     .foregroundStyle(Color.accentColor.opacity(0.35))
                     .frame(height: 2)
+                    .allowsHitTesting(false)
             }
         }
     }

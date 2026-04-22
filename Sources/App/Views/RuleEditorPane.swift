@@ -45,19 +45,20 @@ struct RuleEditorPane: View {
                 Rectangle()
                     .foregroundStyle(Color.accentColor.opacity(0.35))
                     .frame(height: 2)
+                    .allowsHitTesting(false)
             }
         }
         .onAppear {
             presetName = viewModel.presetName(for: viewModel.selectedPresetID)
             syncExpandedRules()
         }
-        .onChange(of: viewModel.selectedPresetID) { selectedPresetID in
-            presetName = viewModel.presetName(for: selectedPresetID)
+        .onChange(of: viewModel.selectedPresetID) {
+            presetName = viewModel.presetName(for: viewModel.selectedPresetID)
         }
-        .onChange(of: viewModel.rules) { _ in
+        .onChange(of: viewModel.rules) {
             syncExpandedRules()
         }
-        .onChange(of: draggedRuleID) { draggedRuleID in
+        .onChange(of: draggedRuleID) {
             if draggedRuleID == nil {
                 dropTargetRuleID = nil
             }
@@ -201,11 +202,9 @@ struct RuleEditorPane: View {
                 viewModel.rules.first(where: { $0.id == ruleID }) ?? RenameRule(kind: .prefix)
             },
             set: { updated in
-                DispatchQueue.main.async {
-                    viewModel.updateRule(updated)
-                    if updated.isEnabled {
-                        expandedRuleIDs.insert(updated.id)
-                    }
+                viewModel.updateRule(updated)
+                if updated.isEnabled {
+                    expandedRuleIDs.insert(updated.id)
                 }
             }
         )
@@ -219,7 +218,7 @@ struct RuleEditorPane: View {
             if let lastIndex = groups.indices.last, groups[lastIndex].section == section {
                 groups[lastIndex].rules.append(rule)
             } else {
-                groups.append(OrderedRuleGroup(section: section, rules: [rule]))
+                groups.append(OrderedRuleGroup(id: rule.id, section: section, rules: [rule]))
             }
         }
 
@@ -230,9 +229,7 @@ struct RuleEditorPane: View {
         Binding(
             get: { viewModel.selectedPresetID },
             set: { selectedID in
-                DispatchQueue.main.async {
-                    viewModel.selectPreset(selectedID)
-                }
+                viewModel.selectPreset(selectedID)
             }
         )
     }
@@ -252,7 +249,7 @@ struct RuleEditorPane: View {
 }
 
 private struct OrderedRuleGroup: Identifiable {
-    let id = UUID()
+    let id: UUID
     let section: RuleSection
     var rules: [RenameRule]
 }
@@ -318,19 +315,21 @@ private struct RuleSectionBlock: View {
             VStack(spacing: 10) {
                 ForEach(rules) { rule in
                     VStack(spacing: 6) {
-                        RuleDropIndicator(
-                            isActiveTarget: dropTargetRuleID == rule.id && draggedRuleID != rule.id,
-                            isDragging: draggedRuleID != nil
-                        )
-                        .onDrop(
-                            of: [UTType.text],
-                            delegate: RuleDropDelegate(
-                                targetRuleID: rule.id,
-                                draggedRuleID: $draggedRuleID,
-                                dropTargetRuleID: $dropTargetRuleID,
-                                moveRuleBefore: moveRuleBefore
+                        if draggedRuleID != nil {
+                            RuleDropIndicator(
+                                isActiveTarget: dropTargetRuleID == rule.id && draggedRuleID != rule.id,
+                                isDragging: true
                             )
-                        )
+                            .onDrop(
+                                of: [UTType.text],
+                                delegate: RuleDropDelegate(
+                                    targetRuleID: rule.id,
+                                    draggedRuleID: $draggedRuleID,
+                                    dropTargetRuleID: $dropTargetRuleID,
+                                    moveRuleBefore: moveRuleBefore
+                                )
+                            )
+                        }
 
                         RuleCard(
                             rule: bindingForRuleID(rule.id),
@@ -617,6 +616,7 @@ private struct RuleDropIndicator: View {
                 }
             }
             .opacity(isDragging ? 1 : 0.001)
+            .allowsHitTesting(isDragging)
             .animation(.easeInOut(duration: 0.12), value: isActiveTarget)
     }
 }

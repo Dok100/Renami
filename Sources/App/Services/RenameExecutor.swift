@@ -6,6 +6,7 @@ struct RenameOperation: Hashable {
     let renamedURL: URL
     let accessURL: URL
     let isSelected: Bool
+    let importSource: FileItem.ImportSource
 }
 
 struct UndoRenameSession: Hashable {
@@ -50,7 +51,8 @@ enum RenameExecutor {
                         originalURL: preview.source.url,
                         renamedURL: preview.targetURL,
                         accessURL: preview.source.accessURL,
-                        isSelected: preview.source.isSelected
+                        isSelected: preview.source.isSelected,
+                        importSource: preview.source.importSource
                     )
                 )
             } catch {

@@ -19,6 +19,7 @@ enum PresetTransferService {
         }
     }
 
+    @MainActor
     static func exportPreset(_ preset: PresetStore.Preset) throws -> URL? {
         let panel = NSSavePanel()
         panel.canCreateDirectories = true
@@ -35,6 +36,7 @@ enum PresetTransferService {
         return destinationURL
     }
 
+    @MainActor
     static func importPreset() throws -> PresetStore.Preset? {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
