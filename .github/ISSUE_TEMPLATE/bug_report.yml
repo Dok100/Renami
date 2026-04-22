@@ -1,0 +1,42 @@
+name: Fehlerbericht
+description: Einen reproduzierbaren Fehler in Renami melden
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke fuer den Hinweis. Bitte beschreibe den Fehler so konkret, dass er nachvollziehbar reproduziert werden kann.
+  - type: textarea
+    id: beschreibung
+    attributes:
+      label: Beschreibung
+      description: Was ist passiert und was waere stattdessen erwartet worden?
+    validations:
+      required: true
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Reproduktionsschritte
+      description: Bitte moeglichst konkrete Schrittfolge angeben.
+      placeholder: |
+        1. Dateien importieren
+        2. Regel "Praefix" aktivieren
+        3. Auf "Umbenennen" klicken
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: umgebung
+    attributes:
+      label: Umgebung
+      description: macOS-Version, Xcode-Version und App-Stand
+      placeholder: "z. B. macOS 15.4, Xcode 16.3, Branch main"
+    validations:
+      required: true
+  - type: textarea
+    id: hinweise
+    attributes:
+      label: Zusatzinformationen
+      description: Screenshots, Logs oder Dateibeispiele

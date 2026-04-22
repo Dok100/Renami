@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Sicherheitsproblem melden
+    url: https://github.com/Dok100/Renami/security
+    about: Bitte keine Sicherheitsluecken als oeffentliches Issue melden.

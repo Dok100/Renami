@@ -1,0 +1,43 @@
+name: Renami
+options:
+  bundleIdPrefix: com.example
+configs:
+  Debug: debug
+  Release: release
+targets:
+  Renami:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources/App
+    settings:
+      base:
+        PRODUCT_NAME: Renami
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.renami
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: Sources/App/Renami.entitlements
+        CODE_SIGN_STYLE: Automatic
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+    scheme:
+      testTargets:
+        - RenamiTests
+
+  RenamiTests:
+    type: bundle.unit-test
+    platform: macOS
+    hostApplication: Renami
+    sources:
+      - path: Tests/AppTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Renami

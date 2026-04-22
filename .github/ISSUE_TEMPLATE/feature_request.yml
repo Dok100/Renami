@@ -1,0 +1,30 @@
+name: Feature-Wunsch
+description: Eine Produkt- oder UX-Erweiterung fuer Renami vorschlagen
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem oder Bedarf
+      description: Welches konkrete Problem soll geloest werden?
+    validations:
+      required: true
+  - type: textarea
+    id: loesung
+    attributes:
+      label: Gewuenschte Loesung
+      description: Wie sollte sich die App idealerweise verhalten?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Abgrenzung
+      description: Was gehoert bewusst nicht zu diesem Vorschlag?
+  - type: textarea
+    id: kontext
+    attributes:
+      label: Kontext
+      description: Beispiel-Dateinamen, Screenshots oder Referenzen
