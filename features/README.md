@@ -8,5 +8,4 @@ Jedes Feature lebt in einer eigenen Datei und beschreibt genau eine testbare Ein
 - auf Nutzerverhalten und Akzeptanzkriterien fokussieren
 - technische Details nur soweit noetig
 - Abhaengigkeiten explizit nennen
-
-Nutze `templates/feature-spec.md` als Startpunkt.
+- bestehende Struktur von `features/PROJ-1-mvp-batch-rename-workflow.md` als Vorlage verwenden

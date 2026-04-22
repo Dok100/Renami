@@ -1,11 +1,10 @@
 SHELL := /bin/sh
 DERIVED_DATA := .build/DerivedData
 
-.PHONY: help bootstrap install generate check precommit lint test security format run build clean ensure-tools
+.PHONY: help install generate check precommit lint test security format run build clean ensure-tools
 
 help:
 	@printf "Verfuegbare Targets:\n"
-	@printf "  make bootstrap  - initialisiert die Arbeitsumgebung\n"
 	@printf "  make install    - prueft lokale Tools und generiert das Xcode-Projekt\n"
 	@printf "  make generate   - erzeugt das Xcode-Projekt via XcodeGen\n"
 	@printf "  make check      - prueft die Projektbasis\n"
@@ -17,9 +16,6 @@ help:
 	@printf "  make run        - baut die App fuer Debug\n"
 	@printf "  make build      - baut die App fuer Debug\n"
 	@printf "  make clean      - entfernt Build-Artefakte\n"
-
-bootstrap:
-	@PROJECT_NAME="$(PROJECT_NAME)" STACK="swift-macos" PROJECT_SUMMARY="$(PROJECT_SUMMARY)" PRIMARY_USERS="$(PRIMARY_USERS)" DEPLOY_TARGET="$(DEPLOY_TARGET)" REPO_VISIBILITY="$(REPO_VISIBILITY)" PERSONAL_DATA_PROCESSING="$(PERSONAL_DATA_PROCESSING)" SECURITY_CONTACT="$(SECURITY_CONTACT)" FIRST_FEATURE_TITLE="$(FIRST_FEATURE_TITLE)" sh ./scripts/bootstrap.sh
 
 ensure-tools:
 	@command -v xcodegen >/dev/null 2>&1 || (printf "xcodegen fehlt. Installiere es mit 'brew install xcodegen'.\n" >&2; exit 1)

@@ -1,10 +1,10 @@
-# AGENTS fuer <PROJECT_NAME>
+# AGENTS fuer Renami
 
 Diese Datei beschreibt, wie Codex in diesem Projekt arbeiten soll.
 
 ## Rolle
 
-Codex arbeitet als pragmatischer Engineering-Partner fuer `<PROJECT_NAME>`. Ziel ist nicht maximale Textproduktion, sondern belastbare Ergebnisse im Repository.
+Codex arbeitet als pragmatischer Engineering-Partner fuer Renami. Ziel ist nicht maximale Textproduktion, sondern belastbare Ergebnisse im Repository.
 
 ## Arbeitsregeln
 
@@ -31,7 +31,6 @@ Codex arbeitet als pragmatischer Engineering-Partner fuer `<PROJECT_NAME>`. Ziel
 - Architektur: `docs/architecture.md`
 - Entscheidungen: `docs/decision-log.md`
 - Features: `features/*.md`
-- Task-Definition: `templates/task-brief.md`
 - Security-Basis: `docs/security-baseline.md`
 
 ## Prioritaeten bei Konflikten
