@@ -12,7 +12,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install XcodeGen
-        run: brew install xcodegen swiftformat
+        run: |
+          if /usr/bin/arch -arm64 /usr/bin/true >/dev/null 2>&1 && [ -x /opt/homebrew/bin/brew ]; then
+            /usr/bin/arch -arm64 /opt/homebrew/bin/brew install xcodegen swiftformat
+          else
+            brew install xcodegen swiftformat
+          fi
 
       - name: Project checks
         run: make check

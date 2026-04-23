@@ -107,4 +107,40 @@ final class ValidationServiceTests: XCTestCase {
 
         XCTAssertEqual(validated.first?.validationIssues.first(where: { $0.kind == .invalidCharacter })?.message, "Schrägstrich / ist im Dateinamen nicht erlaubt")
     }
+
+    func testValidationRejectsTargetURLSplitByPathSeparator() {
+        let directory = URL(fileURLWithPath: "/tmp/renami-tests", isDirectory: true)
+        let file = FileItem(url: directory.appendingPathComponent("quelle.txt"))
+
+        let preview = PreviewItem(
+            id: file.id,
+            source: file,
+            proposedBaseName: "Ordner/Datei",
+            targetFilename: "Ordner/Datei.txt",
+            targetURL: directory.appendingPathComponent("Ordner/Datei.txt"),
+            validationIssues: []
+        )
+
+        let validated = ValidationService.applyValidation(to: [preview])
+
+        XCTAssertTrue(validated.first?.hasErrors ?? false)
+    }
+
+    func testValidationRejectsLineBreaksInFilename() {
+        let directory = URL(fileURLWithPath: "/tmp/renami-tests", isDirectory: true)
+        let file = FileItem(url: directory.appendingPathComponent("quelle.txt"))
+
+        let preview = PreviewItem(
+            id: file.id,
+            source: file,
+            proposedBaseName: "Erste Zeile\nZweite Zeile",
+            targetFilename: "Erste Zeile\nZweite Zeile.txt",
+            targetURL: directory.appendingPathComponent("Erste Zeile\nZweite Zeile.txt"),
+            validationIssues: []
+        )
+
+        let validated = ValidationService.applyValidation(to: [preview])
+
+        XCTAssertEqual(validated.first?.validationIssues.first(where: { $0.kind == .invalidCharacter })?.message, "Zeilenumbrüche sind im Dateinamen nicht erlaubt")
+    }
 }

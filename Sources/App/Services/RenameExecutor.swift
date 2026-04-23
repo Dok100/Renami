@@ -162,6 +162,12 @@ enum RenameExecutor {
             return "Keine Schreibberechtigung für den Zielordner. Wenn der Fehler bleibt, bitte den Ordner statt einzelner Dateien importieren."
         }
 
+        if nsError.domain == NSCocoaErrorDomain,
+           nsError.code == NSFileWriteInvalidFileNameError
+        {
+            return "Ungültiger Zielname. Entferne Schrägstriche oder Zeilenumbrüche aus dem neuen Dateinamen."
+        }
+
         return nsError.localizedDescription
     }
 }

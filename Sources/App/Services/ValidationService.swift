@@ -11,8 +11,12 @@ enum ValidationService {
                 issues.append(ValidationIssue(kind: .emptyName, message: "Leerer Dateiname"))
             }
 
-            if preview.proposedBaseName.contains("/") {
+            if containsPathSeparator(in: preview) {
                 issues.append(ValidationIssue(kind: .invalidCharacter, message: "Schrägstrich / ist im Dateinamen nicht erlaubt"))
+            }
+
+            if containsControlCharacters(in: preview.targetFilename) {
+                issues.append(ValidationIssue(kind: .invalidCharacter, message: "Zeilenumbrüche sind im Dateinamen nicht erlaubt"))
             }
 
             if duplicateTargetURLs.contains(preview.targetURL.standardizedFileURL),
@@ -40,6 +44,16 @@ enum ValidationService {
 
         let grouped = Dictionary(grouping: selectedTargets, by: \.self)
         return Set(grouped.compactMap { $0.value.count > 1 ? $0.key : nil })
+    }
+
+    private static func containsPathSeparator(in preview: PreviewItem) -> Bool {
+        preview.proposedBaseName.contains("/") ||
+            preview.targetFilename.contains("/") ||
+            preview.targetURL.lastPathComponent != preview.targetFilename
+    }
+
+    private static func containsControlCharacters(in filename: String) -> Bool {
+        filename.unicodeScalars.contains { CharacterSet.controlCharacters.contains($0) }
     }
 
     private static func existingTargetCollisionExists(for preview: PreviewItem) -> Bool {
