@@ -37,7 +37,7 @@ Technische Leitplanken fuer eine bewusst einfache, native macOS-App zum Batch-Um
 - `RenameExecutor`
   - fuehrt nur valide, ausgewaehlte Umbenennungen aus
 - `PresetStore`
-  - kapselt die spaetere Persistenz wiederverwendbarer Regelsets
+  - speichert wiederverwendbare Regelsets lokal in `UserDefaults`
 - `PresetTransferService`
   - serialisiert Presets fuer Import und Export als einfache JSON-Dateien
 
@@ -63,7 +63,7 @@ Technische Leitplanken fuer eine bewusst einfache, native macOS-App zum Batch-Um
   - lokal auf dem Geraet
 - Loesch- und Exportfaehigkeit:
   - keine serverseitige Speicherung
-  - spaetere Presets lokal loeschbar
+  - Presets lokal loeschbar sowie als JSON importierbar und exportierbar
 
 ## Leitplanken
 
@@ -96,5 +96,5 @@ Technische Leitplanken fuer eine bewusst einfache, native macOS-App zum Batch-Um
 
 ## Offene technische Fragen
 
-- Reicht `UserDefaults` fuer Presets oder ist frueh eine JSON-Datei pro Benutzer sinnvoller?
-- Welche Sandbox-/Security-Scoped-Strategie soll fuer spaetere Distribution ausserhalb lokaler Builds vertieft werden?
+- Soll fuer eine spaetere externe Distribution ein notarisiertes DMG oder ein ZIP-Release bevorzugt werden?
+- Welche dauerhafte Bundle ID wird fuer Developer-ID-Signierung und Notarisierung verwendet?

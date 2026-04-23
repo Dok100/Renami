@@ -33,6 +33,8 @@ Schlanke Checkliste fuer Solo-Releases von Renami.
 - Standard-Branch und Remote zeigen auf das richtige GitHub-Repository
 - Backups oder Rollback-Weg sind bekannt
 - fuer lokale Releases ist klar, ob nur ein GitHub-Release, ein Tag oder auch ein verteilter App-Build gemeint ist
+- bei Weitergabe an Tester ist klar, ob es ein lokaler ZIP-Test, ein signierter Build oder ein signiertes und notarisiertes Paket ist
+- bei externen Testern sind Bundle ID, Developer-ID-Zertifikat, Signierung, Notarisierung und Gatekeeper-Erwartung geklaert
 - kritische Umgebungsvariablen sind gesetzt, falls fuer Build- oder Signing-Prozesse benoetigt
 - Build in Xcode oder via `make build` ist auf der Zielmaschine nachvollziehbar reproduzierbar
 

@@ -62,6 +62,8 @@ Stand: vorbereitet am 2026-04-23.
 - Auslieferungsform: lokaler macOS-Build aus Xcode bzw. `make build`
 - Signierung: automatische lokale Signierung, noch keine Developer-ID-Notarisierung
 - Verteilung: GitHub-Stand und Tag, noch kein veroeffentlichter DMG-/ZIP-Installer
+- private Tester koennen einen lokal gebauten ZIP-Export testen, muessen aber ohne Notarisierung mit Gatekeeper-Hinweisen rechnen
+- vor professioneller externer Verteilung muss `com.example.renami` durch eine dauerhafte eigene Bundle ID ersetzt werden
 
 ### Durchgefuehrte Checks
 
@@ -78,3 +80,5 @@ Stand: vorbereitet am 2026-04-23.
 - Es gibt noch keine mehrstufige Historie ueber mehrere Sessions.
 - Komplexe Regex-, Wildcard-, EXIF- und Template-Workflows bleiben bewusst ausserhalb von 1.0.
 - Release-Builds sind lokal reproduzierbar, aber noch nicht als notarisiertes Installationspaket veroeffentlicht.
+- Weitergabe an externe Tester ist als ZIP moeglich, aber noch nicht als voll signierter und notarisierter Distributionsfluss automatisiert.
+- Die aktuelle Bundle ID ist noch eine lokale Beispiel-ID und nicht fuer finale oeffentliche Distribution gedacht.

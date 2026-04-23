@@ -26,6 +26,7 @@ Schlankes Solo-Runbook fuer Betrieb, Fehlerbehebung und schnelle Orientierung.
 ## Standardbefehle
 
 - lokal starten: `make install` und anschliessend `open Renami.xcodeproj`
+- lokal bauen und installieren: `make build` und danach `cp -R .build/DerivedData/Build/Products/Debug/Renami.app /Applications/`
 - Tests ausfuehren: `make test`
 - Lint: `make lint`
 - Build: `make build`
@@ -71,6 +72,14 @@ Schlankes Solo-Runbook fuer Betrieb, Fehlerbehebung und schnelle Orientierung.
 - technischer Rollback-Weg: betroffenen Commit in Git revertieren oder auf letzten stabilen Stand zurueckgehen und neu bauen
 - Datenbank-Risiken: keine
 - manuelle Nacharbeiten: nach fehlgeschlagenen Rename-Laeufen Dateinamen pruefen und falls moeglich die Undo-Funktion innerhalb derselben Session verwenden
+
+## Weitergabe an Tester
+
+- niedrigste Huerde: lokalen Build als ZIP verpacken mit `ditto -c -k --keepParent .build/DerivedData/Build/Products/Debug/Renami.app Renami.zip`
+- erwartete Einschraenkung: ohne Developer-ID-Signierung und Notarisierung zeigt macOS beim Tester Gatekeeper-Hinweise
+- praktikabler privater Test: Tester starten die App per Rechtsklick > Oeffnen oder erlauben sie in Systemeinstellungen > Datenschutz & Sicherheit
+- belastbarer externer Test: eindeutige Bundle ID, Developer-ID-Zertifikat, Release-Signierung, Notarisierung und anschliessendes Verteilen als ZIP oder DMG
+- aktueller Stand: `v1.0.0-rc1` ist lokal baubar und getaggt, aber noch nicht als notarisiertes Installationspaket vorbereitet
 
 ## Nachbearbeitung
 

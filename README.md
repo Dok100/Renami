@@ -78,6 +78,24 @@ make build
 
 Vor einem Commit ist `make precommit` der sinnvolle Vollcheck.
 
+## Lokale Installation und Weitergabe
+
+Fuer die eigene Nutzung kann der lokale Build direkt in den Programme-Ordner kopiert werden:
+
+```bash
+make build
+cp -R .build/DerivedData/Build/Products/Debug/Renami.app /Applications/
+```
+
+Fuer externe Tester gibt es drei Stufen:
+
+- einfacher ZIP-Test: `make build` ausfuehren und `Renami.app` mit `ditto -c -k --keepParent .build/DerivedData/Build/Products/Debug/Renami.app Renami.zip` verpacken. Tester muessen Gatekeeper-Warnungen gegebenenfalls per Rechtsklick > Oeffnen oder ueber Datenschutz & Sicherheit erlauben.
+- signierter Test-Build: Apple Developer Program, eindeutige Bundle ID und Developer-ID-Zertifikat einrichten, dann Release-Build signieren und als ZIP oder DMG weitergeben.
+- professioneller externer Test: Developer-ID-signieren, notarisierten lassen, Notarisierung anheften und anschliessend als GitHub Release, ZIP oder DMG verteilen.
+
+Der aktuelle RC1-Stand ist fuer lokale Builds vorbereitet, aber noch kein notarisiertes Installationspaket.
+Vor einer professionellen externen Verteilung muss ausserdem die aktuelle Beispiel-Bundle-ID `com.example.renami` durch eine dauerhafte eigene Bundle ID ersetzt werden.
+
 ## GitHub
 
 - Repository: `https://github.com/Dok100/Renami`
@@ -101,7 +119,7 @@ git push -u origin main
 
 Renami ist inzwischen ueber das reine MVP hinausgewachsen, bleibt aber bewusst einfach im Bedienkonzept. Der aktuelle Schwerpunkt liegt auf Stabilitaet, Klarheit in der UI und dem sauberen Ausbau der bestehenden Regeln, Presets und Import-Workflows.
 
-Der erste Release-Kandidat ist als `v1.0.0-rc1` vorgesehen. Die App-Version im Xcode-Projekt steht dafuer auf `1.0.0`; die Verteilung bleibt zunaechst ein lokaler macOS-Build ueber Xcode bzw. `make build`.
+Der aktuelle Release-Kandidat ist `v1.0.0-rc1`. Die App-Version im Xcode-Projekt steht dafuer auf `1.0.0`; die Verteilung bleibt zunaechst ein lokaler macOS-Build ueber Xcode bzw. `make build`.
 
 Bewusst weiterhin nicht priorisiert sind:
 

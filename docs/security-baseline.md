@@ -30,13 +30,14 @@ Diese Datei beschreibt die aktuelle Sicherheitsbasis von Renami als lokale macOS
 - Git-Hooks lokal installieren, wenn der Workflow dauerhaft auf derselben Maschine genutzt wird
 - Dependabot-PRs nicht blind mergen, sondern durch Tests und Review absichern
 - sicherheitsrelevante Aenderungen an Dateizugriff, Sandbox oder Rename-Logik in `docs/decision-log.md` oder der passenden Feature-Datei dokumentieren
+- vor externer Weitergabe klaeren, ob die App nur lokal gezippt oder Developer-ID-signiert und notarisiert verteilt wird
 
 ## Grenzen
 
 - Musterbasierte Secret-Pruefung findet nicht alles
 - CodeQL und CI decken nicht jede lokale Laufzeit- oder UI-Regression ab
 - lokale Desktop-Apps haben andere Risiken als Web-Apps; CSP- oder Header-Themen sind hier nicht zentral
-- Security-Scoped-Zugriffe und Sandbox-Verhalten muessen fuer spaetere Distribution ausserhalb lokaler Entwickler-Builds weiter geschaerft werden
+- Security-Scoped-Zugriffe und Sandbox-Verhalten sind fuer lokale Builds stabilisiert; fuer breitere Distribution bleiben Developer-ID-Signierung, Notarisierung und Gatekeeper-Verhalten separat zu pruefen
 
 ## Abgrenzung zu Datenschutz
 
