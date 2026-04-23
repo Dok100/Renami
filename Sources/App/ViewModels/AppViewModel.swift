@@ -547,24 +547,27 @@ final class AppViewModel: ObservableObject {
 
         let requiredDirectories = Array(Set(affectedFiles.map(\.directoryURL.standardizedFileURL)))
             .sorted { $0.path(percentEncoded: false) < $1.path(percentEncoded: false) }
-        let grantedDirectories = Set(
+        let grantedDirectories = Array(Set(
             FileImportService.pickAccessFolders(for: requiredDirectories)
                 .map(\.standardizedFileURL)
-        )
+        ))
+        .sorted { $0.path(percentEncoded: false).count > $1.path(percentEncoded: false).count }
 
         guard !grantedDirectories.isEmpty else {
             renameFeedbackMessage = "Um einzelne Dateien umzubenennen, bitte den Zielordner freigeben."
             return false
         }
 
-        let missingDirectories = requiredDirectories.filter { !grantedDirectories.contains($0) }
+        let missingDirectories = requiredDirectories.filter { directory in
+            coveringAccessDirectory(for: directory, in: grantedDirectories) == nil
+        }
         guard missingDirectories.isEmpty else {
-            renameFeedbackMessage = "Nicht alle Zielordner wurden freigegeben. Bitte die betroffenen Ordner erneut auswählen."
+            renameFeedbackMessage = "Nicht alle Zielordner wurden freigegeben. Ein freigegebener übergeordneter Ordner reicht aus."
             return false
         }
 
         files = files.map { file in
-            guard let grantedDirectory = grantedDirectories.first(where: { $0 == file.directoryURL.standardizedFileURL }) else {
+            guard let grantedDirectory = coveringAccessDirectory(for: file.directoryURL.standardizedFileURL, in: grantedDirectories) else {
                 return file
             }
 
@@ -574,6 +577,10 @@ final class AppViewModel: ObservableObject {
         }
 
         return true
+    }
+
+    private func coveringAccessDirectory(for directory: URL, in grantedDirectories: [URL]) -> URL? {
+        grantedDirectories.first { directory.isEqualToOrContained(in: $0) }
     }
 
     private func applyRenameResult(_ result: RenameExecutionResult, basedOn previews: [PreviewItem]) {

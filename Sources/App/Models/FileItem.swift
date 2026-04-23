@@ -58,10 +58,24 @@ struct FileItem: Identifiable, Hashable {
     }
 
     var needsDirectoryAccessGrant: Bool {
-        accessURL.standardizedFileURL != directoryURL.standardizedFileURL
+        !directoryURL.isEqualToOrContained(in: accessURL)
     }
 
     var displayDirectory: String {
         directoryURL.path(percentEncoded: false)
+    }
+}
+
+extension URL {
+    func isEqualToOrContained(in parentURL: URL) -> Bool {
+        let path = standardizedFileURL.path(percentEncoded: false)
+        let parentPath = parentURL.standardizedFileURL.path(percentEncoded: false)
+
+        if path == parentPath {
+            return true
+        }
+
+        let parentDirectoryPath = parentPath.hasSuffix("/") ? parentPath : parentPath + "/"
+        return path.hasPrefix(parentDirectoryPath)
     }
 }

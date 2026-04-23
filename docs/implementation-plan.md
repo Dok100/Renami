@@ -16,6 +16,7 @@ Das Repository vom generischen Framework in eine baubare, testbare macOS-App fue
 8. linke Quellenliste um Fokusfilter fuer `Alle`, `Geaendert` und `Konflikte` erweitern.
 9. rekursiven Ordnerimport und Dateityp-Filter in den Importfluss integrieren.
 10. UI und Regel-Editor fuer stabileres Reordering und klarere Vorschau nachziehen.
+11. Sandbox-Freigabe fuer rekursiv importierte Unterordner stabilisieren.
 
 ## Naechste Ausbaustufen
 

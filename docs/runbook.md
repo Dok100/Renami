@@ -46,6 +46,8 @@ Schlankes Solo-Runbook fuer Betrieb, Fehlerbehebung und schnelle Orientierung.
 
 - App-Sandbox und Berechtigungen pruefen
 - sicherstellen, dass Dateien oder Zielordner ueber Open Panel oder Drag-and-drop in die App gegeben wurden
+- bei rekursiv importierten Ordnern reicht die Freigabe des uebergeordneten Importordners fuer enthaltene Unterordner
+- bei einzeln importierten Dateien aus verschiedenen Ordnern muessen die betroffenen Zielordner freigegeben werden
 - bei Umbenennungsfehlern Vorschau und Konflikthinweise rechts lesen
 - pruefen, ob Schreibrechte fuer den Zielordner vorliegen
 

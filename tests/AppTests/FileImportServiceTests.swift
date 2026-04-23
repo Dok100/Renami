@@ -43,6 +43,38 @@ final class FileImportServiceTests: XCTestCase {
         XCTAssertTrue(items.allSatisfy { $0.accessURL.standardizedFileURL == root.standardizedFileURL })
     }
 
+    func testRecursiveFolderImportUsesRootAccessForNestedFiles() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let nestedFolder = root.appendingPathComponent("Unterordner", isDirectory: true)
+        let nestedFile = nestedFolder.appendingPathComponent("nested.txt")
+
+        try FileManager.default.createDirectory(at: nestedFolder, withIntermediateDirectories: true)
+        try "nested".write(to: nestedFile, atomically: true, encoding: .utf8)
+
+        let items = FileImportService.buildFileItems(
+            from: [root],
+            options: .init(includesSubfolders: true, fileTypeFilter: .allFiles)
+        )
+
+        let item = try XCTUnwrap(items.first)
+        XCTAssertEqual(item.accessURL.standardizedFileURL, root.standardizedFileURL)
+        XCTAssertFalse(item.needsDirectoryAccessGrant)
+    }
+
+    func testDirectFileImportStillNeedsDirectoryGrant() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let directFile = root.appendingPathComponent("text.pdf")
+        try "pdf".write(to: directFile, atomically: true, encoding: .utf8)
+
+        let item = FileItem(url: directFile, accessURL: directFile)
+
+        XCTAssertTrue(item.needsDirectoryAccessGrant)
+    }
+
     func testFolderImportAppliesFileTypeFilter() throws {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }

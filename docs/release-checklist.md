@@ -41,6 +41,7 @@ Schlanke Checkliste fuer Solo-Releases von Renami.
 - Smoke-Test in der Zielumgebung
 - kritische Pfade kurz pruefen:
   - Dateien importieren
+  - Ordner mit Unterordnern und Dateitypfilter importieren
   - Regeln bearbeiten
   - Vorschau und Validierung pruefen
   - Umbenennen und Undo testen
