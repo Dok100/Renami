@@ -244,12 +244,12 @@ struct RenameRule: Identifiable, Hashable, Codable {
             RenameRule(kind: .prefix),
             RenameRule(kind: .suffix),
             RenameRule(kind: .insertText),
-            RenameRule(kind: .dateStamp),
-            RenameRule(kind: .normalizeDatePrefix),
-            RenameRule(kind: .numbering),
             RenameRule(kind: .removeCharacters),
             RenameRule(kind: .caseTransform),
             RenameRule(kind: .removeDiacritics),
+            RenameRule(kind: .dateStamp),
+            RenameRule(kind: .normalizeDatePrefix),
+            RenameRule(kind: .numbering),
             RenameRule(kind: .windowsSanitize),
         ]
     }

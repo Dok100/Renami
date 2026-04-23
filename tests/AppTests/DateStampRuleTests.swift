@@ -140,4 +140,23 @@ final class DateStampRuleTests: XCTestCase {
 
         XCTAssertEqual(result, "sample")
     }
+
+    func testRemoveCharactersBeforeDateStampKeepsInsertedDateIntact() throws {
+        let manualDate = try XCTUnwrap(
+            Calendar(identifier: .iso8601).date(from: DateComponents(year: 2026, month: 4, day: 18))
+        )
+        let file = FileItem(url: URL(fileURLWithPath: "/tmp/sample.txt"))
+        let rules = [
+            RenameRule(kind: .removeCharacters, isEnabled: true, removeCount: 2, removeDirection: .start),
+            RenameRule(kind: .dateStamp, isEnabled: true, manualDate: manualDate, dateSource: .manual, datePosition: .prefix),
+        ]
+
+        let result = RenamePipeline.apply(
+            baseName: "sample",
+            rules: rules,
+            context: RenameContext(itemIndex: 0, fileItem: file)
+        )
+
+        XCTAssertEqual(result, "2026-04-18_mple")
+    }
 }
