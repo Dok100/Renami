@@ -101,6 +101,8 @@ git push -u origin main
 
 Renami ist inzwischen ueber das reine MVP hinausgewachsen, bleibt aber bewusst einfach im Bedienkonzept. Der aktuelle Schwerpunkt liegt auf Stabilitaet, Klarheit in der UI und dem sauberen Ausbau der bestehenden Regeln, Presets und Import-Workflows.
 
+Der erste Release-Kandidat ist als `v1.0.0-rc1` vorgesehen. Die App-Version im Xcode-Projekt steht dafuer auf `1.0.0`; die Verteilung bleibt zunaechst ein lokaler macOS-Build ueber Xcode bzw. `make build`.
+
 Bewusst weiterhin nicht priorisiert sind:
 
 - Regex-First-UX oder wildcard-lastige Profi-Eingaenge

@@ -52,3 +52,29 @@ Die Kernfunktionen sind vorhanden, aber ein guter 1.0-Stand braucht mehr als neu
 - Regeln aktivieren, deaktivieren und umordnen
 - Diakritika-Entfernung mit Namen wie `Überblick für Crème brûlée.txt` pruefen
 - Rename und Undo im selben App-Lauf pruefen
+
+## Release-Kandidat v1.0.0-rc1
+
+Stand: vorbereitet am 2026-04-23.
+
+- App-Version fuer den Release-Kandidaten: `1.0.0`
+- Git-Tag: `v1.0.0-rc1`
+- Auslieferungsform: lokaler macOS-Build aus Xcode bzw. `make build`
+- Signierung: automatische lokale Signierung, noch keine Developer-ID-Notarisierung
+- Verteilung: GitHub-Stand und Tag, noch kein veroeffentlichter DMG-/ZIP-Installer
+
+### Durchgefuehrte Checks
+
+- `make check`
+- `make security`
+- `make lint`
+- `make test`
+- `make build`
+
+### Bekannte Grenzen fuer 1.0
+
+- Undo gilt nur fuer die letzte erfolgreiche Umbenennung in der laufenden App-Session.
+- Es gibt noch keine Finder-Erweiterung.
+- Es gibt noch keine mehrstufige Historie ueber mehrere Sessions.
+- Komplexe Regex-, Wildcard-, EXIF- und Template-Workflows bleiben bewusst ausserhalb von 1.0.
+- Release-Builds sind lokal reproduzierbar, aber noch nicht als notarisiertes Installationspaket veroeffentlicht.
