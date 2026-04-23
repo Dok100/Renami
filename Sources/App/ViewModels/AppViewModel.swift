@@ -53,6 +53,10 @@ final class AppViewModel: ObservableObject {
         PreviewEngine.buildPreviews(items: files, rules: rules)
     }
 
+    private var selectedPreviews: [PreviewItem] {
+        currentPreviews.filter(\.isSelected)
+    }
+
     var selectedCount: Int {
         files.filter(\.isSelected).count
     }
@@ -77,11 +81,11 @@ final class AppViewModel: ObservableObject {
     var displayedPreviews: [PreviewItem] {
         let filtered = switch previewListMode {
         case .all:
-            currentPreviews
+            selectedPreviews
         case .changedOnly:
-            currentPreviews.filter(\.isChanged)
+            selectedPreviews.filter(\.isChanged)
         case .conflictsOnly:
-            currentPreviews.filter(\.hasErrors)
+            selectedPreviews.filter(\.hasErrors)
         }
 
         return filtered.sorted { lhs, rhs in
@@ -102,15 +106,15 @@ final class AppViewModel: ObservableObject {
     }
 
     var changedCount: Int {
-        currentPreviews.count(where: \.isChanged)
+        selectedPreviews.count(where: \.isChanged)
     }
 
     var errorCount: Int {
-        currentPreviews.count(where: \.hasErrors)
+        selectedPreviews.count(where: \.hasErrors)
     }
 
     var unchangedCount: Int {
-        currentPreviews.count { !$0.isChanged }
+        selectedPreviews.count { !$0.isChanged }
     }
 
     var activeRuleCount: Int {
@@ -118,11 +122,11 @@ final class AppViewModel: ObservableObject {
     }
 
     var renameCandidateCount: Int {
-        currentPreviews.count { $0.isSelected && $0.isChanged && !$0.hasErrors }
+        selectedPreviews.count { $0.isChanged && !$0.hasErrors }
     }
 
     var selectedConflictCount: Int {
-        currentPreviews.count { $0.isSelected && $0.hasErrors }
+        selectedPreviews.count(where: \.hasErrors)
     }
 
     var selectionSummary: String {
@@ -154,8 +158,8 @@ final class AppViewModel: ObservableObject {
             return "Aktiviere mindestens eine Regel, damit die Vorschau einen Unterschied zeigen kann."
         }
 
-        if currentPreviews.isEmpty {
-            return "Noch keine Vorschau verfügbar."
+        if selectedPreviews.isEmpty {
+            return "Wähle links mindestens eine Datei aus, um sie in der Freigabe zu prüfen."
         }
 
         if errorCount > 0 {
@@ -211,8 +215,8 @@ final class AppViewModel: ObservableObject {
     }
 
     var canRename: Bool {
-        currentPreviews.contains { $0.isSelected && $0.isChanged } &&
-            !currentPreviews.contains { $0.isSelected && $0.hasErrors }
+        selectedPreviews.contains(where: \.isChanged) &&
+            !selectedPreviews.contains(where: \.hasErrors)
     }
 
     var canUndoLastRename: Bool {
@@ -244,7 +248,7 @@ final class AppViewModel: ObservableObject {
     }
 
     var hasPreviewContent: Bool {
-        !currentPreviews.isEmpty
+        !selectedPreviews.isEmpty
     }
 
     var activeStep: Int {

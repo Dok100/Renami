@@ -11,6 +11,7 @@ struct RenameRule: Identifiable, Hashable, Codable {
         case numbering
         case removeCharacters
         case caseTransform
+        case removeDiacritics
         case windowsSanitize
 
         var title: String {
@@ -33,6 +34,8 @@ struct RenameRule: Identifiable, Hashable, Codable {
                 "Zeichen entfernen"
             case .caseTransform:
                 "Schreibweise"
+            case .removeDiacritics:
+                "Akzente entfernen"
             case .windowsSanitize:
                 "Windows-kompatibel"
             }
@@ -58,6 +61,8 @@ struct RenameRule: Identifiable, Hashable, Codable {
                 "Schneidet Zeichen am Anfang oder Ende ab."
             case .caseTransform:
                 "Vereinheitlicht die Schreibweise."
+            case .removeDiacritics:
+                "Entfernt Akzente und diakritische Zeichen wie ä, é oder ñ."
             case .windowsSanitize:
                 "Ersetzt reservierte Zeichen für Windows-Kompatibilität."
             }
@@ -244,6 +249,7 @@ struct RenameRule: Identifiable, Hashable, Codable {
             RenameRule(kind: .numbering),
             RenameRule(kind: .removeCharacters),
             RenameRule(kind: .caseTransform),
+            RenameRule(kind: .removeDiacritics),
             RenameRule(kind: .windowsSanitize),
         ]
     }

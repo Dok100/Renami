@@ -64,6 +64,9 @@ enum RenamePipeline {
             case .caseTransform:
                 return transformCase(current, style: rule.caseStyle)
 
+            case .removeDiacritics:
+                return removeDiacritics(from: current)
+
             case .windowsSanitize:
                 guard rule.replaceReservedCharacters else { return current }
                 return sanitizeForWindows(current)
@@ -235,6 +238,10 @@ enum RenamePipeline {
         }
 
         return token.prefix(1).uppercased() + token.dropFirst().lowercased()
+    }
+
+    private static func removeDiacritics(from text: String) -> String {
+        text.folding(options: [.diacriticInsensitive], locale: .current)
     }
 
     private static func sanitizeForWindows(_ text: String) -> String {

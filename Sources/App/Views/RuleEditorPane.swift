@@ -268,7 +268,7 @@ private enum RuleSection {
             .naming
         case .dateStamp, .normalizeDatePrefix:
             .date
-        case .removeCharacters, .caseTransform, .windowsSanitize:
+        case .removeCharacters, .caseTransform, .removeDiacritics, .windowsSanitize:
             .cleanup
         }
     }
@@ -594,6 +594,11 @@ private struct RuleCard: View {
                     Text(style.title).tag(style)
                 }
             }
+
+        case .removeDiacritics:
+            Text("Wandelt z. B. ä zu a, é zu e und ñ zu n. Die Dateiendung bleibt unverändert.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
         case .windowsSanitize:
             Toggle("Für Windows unzulässige Zeichen ersetzen", isOn: $rule.replaceReservedCharacters)

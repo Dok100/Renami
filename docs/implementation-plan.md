@@ -20,7 +20,8 @@ Das Repository vom generischen Framework in eine baubare, testbare macOS-App fue
 ## Naechste Ausbaustufen
 
 - stabilere Feinschliffe fuer den Regel-Editor und weitere Tests rund um Texteingaben, Drag-and-drop und Fokuszustand
-- weitere einfache Regeln wie Diakritika-Entfernung oder feste Namensmuster
+- weitere einfache Regeln und Release-Haertung unter `PROJ-5`
+- feste Namensmuster als spaeterer Preset-/Profi-Baustein pruefen
 - feinere Importoptionen fuer Ordner, ohne in eine komplexe Profi-UI abzugleiten
 - Undo-Konzept ueber mehrere Sessions und optionales Aktivitaetsprotokoll
 - Polishing fuer Release, Distribution und Sandboxing ausserhalb lokaler Entwicklungslaeufe

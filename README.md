@@ -32,6 +32,7 @@ Der aktuelle Stand von Renami liefert:
   - Nummerierung
   - Zeichen am Anfang oder Ende entfernen
   - Schreibweise aendern
+  - Akzente und diakritische Zeichen entfernen
   - Windows-kompatible Bereinigung
 - Validierung fuer doppelte Zielnamen, leere oder ungueltige Namen und Kollisionen mit vorhandenen Dateien
 - tatsaechliches Umbenennen im Dateisystem

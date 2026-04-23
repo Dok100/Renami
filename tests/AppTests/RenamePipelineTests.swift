@@ -85,4 +85,19 @@ final class RenamePipelineTests: XCTestCase {
 
         XCTAssertEqual(result, "2026-03-12_Zinseszins_Rechner")
     }
+
+    func testRemoveDiacriticsKeepsFilenameReadable() {
+        let file = FileItem(url: URL(fileURLWithPath: "/tmp/überblick.txt"))
+        let rules = [
+            RenameRule(kind: .removeDiacritics, isEnabled: true),
+        ]
+
+        let result = RenamePipeline.apply(
+            baseName: "Überblick_für_Crème-brûlée_ñandú",
+            rules: rules,
+            context: RenameContext(itemIndex: 0, fileItem: file)
+        )
+
+        XCTAssertEqual(result, "Uberblick_fur_Creme-brulee_nandu")
+    }
 }
