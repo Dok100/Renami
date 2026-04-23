@@ -64,12 +64,16 @@ test:
 
 security:
 	@printf "Hardcoded secrets pruefen ... "
-	@! rg -n 'AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36,}|-----BEGIN [A-Z ]*PRIVATE KEY-----' Sources Tests >/dev/null 2>&1
+	@if command -v rg >/dev/null 2>&1; then \
+		! rg -n 'AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36,}|-----BEGIN [A-Z ]*PRIVATE KEY-----' Sources tests >/dev/null 2>&1; \
+	else \
+		! grep -REn 'AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36,}|-----BEGIN [A-Z ]*PRIVATE KEY-----' Sources tests >/dev/null 2>&1; \
+	fi
 	@printf "ok\n"
 	@printf "App Sandbox pruefen ... "
-	@rg -q 'ENABLE_APP_SANDBOX: YES' project.yml && printf "ok\n"
+	@grep -q 'ENABLE_APP_SANDBOX: YES' project.yml && printf "ok\n"
 	@printf "Code Signing bewusst auf Automatic ... "
-	@rg -q 'CODE_SIGN_STYLE: Automatic' project.yml && printf "ok\n"
+	@grep -q 'CODE_SIGN_STYLE: Automatic' project.yml && printf "ok\n"
 
 format:
 	@swiftformat Sources Tests

@@ -27,8 +27,14 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: make generate
+
+      - name: Build
+        run: xcodebuild build -scheme Renami -destination 'platform=macOS' -derivedDataPath .build/DerivedData
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
